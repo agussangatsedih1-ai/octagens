@@ -1,0 +1,40 @@
+# ======================================================================
+#  OctaGens - guis/energyshop.yml  (Energy Shop, paginasi otomatis)
+#  entry-lore placeholder: {price} {status} {ingredients} {mcu} {name}
+#  ({ingredients} berisi beberapa baris: centang hijau = cukup, silang merah = kurang)
+# ======================================================================
+title: "<gradient:#f093fb:#f5576c><bold>Energy Shop</bold></gradient> <dark_gray>({page}/{pages})"
+rows: 4
+filler:
+  item: "VANILLA:BLACK_STAINED_GLASS_PANE"
+  name: " "
+content-slots: ["10-16", "19-21"]
+entry-lore:
+  - ""
+  - "<gray>Harga: <gold>{price}"
+  - "<gray>Bahan:"
+  - "{ingredients}"
+  - ""
+  - "<gray>Status: {status}"
+  - "<yellow>Klik untuk membeli"
+items:
+  prev:
+    slot: 30
+    function: PREV
+    item: "VANILLA:ARROW"
+    name: "<yellow>« Halaman sebelumnya"
+  close:
+    slot: 31
+    item: "VANILLA:BARRIER"
+    name: "<red>Tutup"
+    actions: ["[close]"]
+  back:
+    slot: 27
+    item: "VANILLA:OAK_DOOR"
+    name: "<gray>Menu utama"
+    actions: ["[open:main]"]
+  next:
+    slot: 32
+    function: NEXT
+    item: "VANILLA:ARROW"
+    name: "<yellow>Halaman berikutnya »"

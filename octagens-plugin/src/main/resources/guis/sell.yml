@@ -1,0 +1,32 @@
+# ======================================================================
+#  OctaGens - guis/sell.yml  (aktif bila sell.sell-gui: true di config.yml)
+#  function: SUMMARY = ringkasan penjualan. Placeholder: {items} {total} {multiplier} {lines}
+#  Aksi internal: [sell] menjual semua drop (GUI diperbarui), [sell-hand]
+# ======================================================================
+title: "<gradient:#f7971e:#ffd200><bold>Jual Drop</bold></gradient>"
+rows: 3
+filler:
+  item: "VANILLA:BLACK_STAINED_GLASS_PANE"
+  name: " "
+items:
+  summary:
+    slot: 13
+    function: SUMMARY
+    item: "VANILLA:CHEST"
+    name: "<white><bold>Ringkasan"
+    lore:
+      - "{lines}"
+      - ""
+      - "<gray>Total item: <white>{items}"
+      - "<gray>Total uang: <green>{total}"
+      - "<gray>Multiplier: <gold>x{multiplier}"
+  confirm:
+    slot: 11
+    item: "VANILLA:LIME_STAINED_GLASS_PANE"
+    name: "<green><bold>JUAL SEMUA"
+    actions: ["[sell]", "[sound] entity.experience_orb.pickup"]
+  cancel:
+    slot: 15
+    item: "VANILLA:RED_STAINED_GLASS_PANE"
+    name: "<red><bold>BATAL"
+    actions: ["[close]"]

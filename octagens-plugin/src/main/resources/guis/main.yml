@@ -1,0 +1,58 @@
+# ======================================================================
+#  OctaGens - guis/main.yml  (menu utama)
+#  Format item: slot / slots (angka, "a-b", atau list), item (ref), name, lore,
+#  custom-model-data, item-model (1.21.2+), glow, hide-flags, amount, actions.
+#  Aksi: [close] [open:<gui>] [message] [sound] [console] [player]
+#        internal: [sell] [sell-hand]
+#  Placeholder: {player} {generators} {generators_max} {energies} {energy_max} + PlaceholderAPI (%...%)
+#  Title mendukung ItemsAdder font image (mis. :namespace_gui:) bila ItemsAdder terpasang.
+#  Ref item: VANILLA:X | MMOITEMS:TYPE:ID | ITEMSADDER:ns:id | HEAD:<base64>
+# ======================================================================
+title: "<gradient:#a18cd1:#fbc2eb><bold>OctaGens</bold></gradient>"
+rows: 3
+filler:
+  item: "VANILLA:BLACK_STAINED_GLASS_PANE"
+  name: " "
+items:
+  shop:
+    slot: 10
+    item: "VANILLA:LAPIS_BLOCK"
+    name: "<gradient:#4facfe:#00f2fe><bold>Generator Shop</bold></gradient>"
+    lore:
+      - "<gray>Beli generator sihir."
+      - ""
+      - "<yellow>Klik untuk membuka"
+    actions: ["[sound] ui.button.click", "[open:shop]"]
+  energyshop:
+    slot: 12
+    item: "VANILLA:AMETHYST_CLUSTER"
+    name: "<gradient:#f093fb:#f5576c><bold>Energy Shop</bold></gradient>"
+    lore:
+      - "<gray>Tukar bahan menjadi energy."
+      - ""
+      - "<yellow>Klik untuk membuka"
+    actions: ["[sound] ui.button.click", "[open:energyshop]"]
+  sell:
+    slot: 14
+    item: "VANILLA:GOLD_INGOT"
+    name: "<gradient:#f7971e:#ffd200><bold>Jual Drop</bold></gradient>"
+    lore:
+      - "<gray>Jual semua item drop OctaGens."
+      - ""
+      - "<yellow>Klik untuk menjual"
+    actions: ["[sell]", "[close]"]
+  info:
+    slot: 16
+    item: "VANILLA:BOOK"
+    name: "<white><bold>Statistikmu"
+    lore:
+      - "<gray>Generator: <aqua>{generators}<gray>/<aqua>{generators_max}"
+      - "<gray>Energy: <aqua>{energies}<gray>/<aqua>{energy_max}"
+      - "<gray>Total Mcu/s: <aqua>%octagens_magicule_energy_me%"
+      - "<gray>Efficiency: <aqua>%octagens_efficiency_me%"
+      - "<gray>Weekend bonus: <white>%octagens_weekend_active% <dark_gray>(%octagens_weekend_multiplier%)"
+  close:
+    slot: 22
+    item: "VANILLA:BARRIER"
+    name: "<red>Tutup"
+    actions: ["[close]"]

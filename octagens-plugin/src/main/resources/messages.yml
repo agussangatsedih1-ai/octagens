@@ -1,0 +1,105 @@
+# ======================================================================
+#  OctaGens - messages.yml
+#  Placeholder dalam kurung kurawal. {prefix} diisi otomatis.
+#  Mendukung MiniMessage, &-legacy dan hex.
+# ======================================================================
+prefix: "<gradient:#a18cd1:#fbc2eb><bold>OctaGens</bold></gradient> <dark_gray>»</dark_gray> "
+
+no-permission: "{prefix}<red>Kamu tidak punya izin untuk itu."
+player-only: "{prefix}<red>Command ini hanya untuk player."
+unknown-command: "{prefix}<red>Subcommand tidak dikenal. Ketik <white>/octagens help<red>."
+reloaded: "{prefix}<green>Semua config berhasil di-reload."
+invalid-player: "{prefix}<red>Player <white>{player}<red> tidak ditemukan."
+invalid-id: "{prefix}<red>ID <white>{id}<red> tidak ditemukan."
+invalid-number: "{prefix}<red>Angka tidak valid: <white>{value}"
+invalid-duration: "{prefix}<red>Durasi tidak valid: <white>{value} <gray>(contoh: 30m, 2h, 1d)"
+usage-give: "{prefix}<yellow>/octagens give <player> <generator|energy> <id> [jumlah]"
+usage-remove: "{prefix}<yellow>/octagens remove <player> <generators|energy|all> [id]"
+usage-setbonus: "{prefix}<yellow>/octagens setbonus <multiplier|off> [durasi]"
+
+help:
+  - "{prefix}<white>Perintah OctaGens:"
+  - " <aqua>/octagens <gray>- menu utama"
+  - " <aqua>/octagens shop <gray>- toko generator"
+  - " <aqua>/octagens energyshop <gray>- toko energy"
+  - " <aqua>/octagens sell [hand] <gray>- jual drop"
+  - " <aqua>/octagens list <gray>- generator & energy milikmu"
+help-admin:
+  - " <gold>/octagens give <player> <generator|energy> <id> [jumlah]"
+  - " <gold>/octagens remove <player> <generators|energy|all> [id]"
+  - " <gold>/octagens setbonus <multiplier|off> [durasi]"
+  - " <gold>/octagens reload"
+
+# --- penempatan ---
+generator-placed: "{prefix}<green>Generator {name} <green>terpasang."
+generator-slot-full: "{prefix}<red>Slot generator penuh <gray>(maks {max})."
+generator-no-space: "{prefix}<red>Ruang di atas generator harus kosong."
+generator-unknown-type: "{prefix}<red>Tipe generator ini sudah tidak ada di config. Hubungi admin."
+generator-item-unavailable: "{prefix}<red>Item generator ini tidak tersedia (hook/item hilang). Hubungi admin."
+generator-pickup: "{prefix}<green>Generator {name} <green>diambil."
+energy-placed: "{prefix}<green>Energy {name} <green>terpasang <gray>(+{mcu} Mcu/s)."
+energy-slot-full: "{prefix}<red>Slot energy penuh <gray>(maks {max})."
+energy-unknown-type: "{prefix}<red>Tipe energy ini sudah tidak ada di config. Hubungi admin."
+energy-pickup: "{prefix}<green>Energy {name} <green>diambil."
+energy-info: "{prefix}{name} <gray>- <aqua>{mcu} Mcu/s <gray>(milik <white>{owner}<gray>)"
+place-world-blocked: "{prefix}<red>Generator dan energy tidak boleh dipasang di dunia ini."
+break-denied: "{prefix}<red>Ini milik <white>{owner}<red>."
+edit-denied: "{prefix}<red>Kamu tidak boleh mengubah ini."
+
+# --- shop ---
+status-buyable: "<green>Bisa dibeli"
+status-locked: "<red>Terkunci"
+status-slot-full: "<gold>Slot penuh"
+status-no-money: "<red>Saldo kurang"
+energy-status-buyable: "<green>Bisa dibeli"
+energy-status-unavailable: "<red>Tidak tersedia"
+energy-status-missing: "<red>Bahan kurang"
+energy-status-no_money: "<red>Saldo kurang"
+no-money-cost: "<gray>-"
+ingredient-ok: "<green>✔ <white>{amount}x {name} <dark_gray>({have}/{amount})"
+ingredient-missing: "<red>✘ <white>{amount}x {name} <dark_gray>({have}/{amount})"
+buy-generator-success: "{prefix}<green>Kamu membeli {name} <green>seharga <white>{price}<green>."
+energy-buy-success: "{prefix}<green>Kamu membeli {name} <green>(uang: <white>{price}<green>)."
+buy-not-enough-money: "{prefix}<red>Saldo kurang. Harga: <white>{price}"
+buy-slot-full: "{prefix}<red>Slot generator penuh, tidak bisa membeli lagi."
+buy-locked: "{prefix}<red>Item ini terkunci / tidak tersedia."
+buy-cancelled: "{prefix}<red>Pembelian dibatalkan."
+buy-failed: "{prefix}<red>Transaksi gagal, tidak ada yang diambil."
+energy-unavailable: "{prefix}<red>Resep ini tidak tersedia <gray>(plugin/item yang dibutuhkan tidak terpasang)."
+energy-missing-ingredients: "{prefix}<red>Bahan tidak cukup. Tidak ada item yang diambil."
+
+# --- sell ---
+sell-success: "{prefix}<green>Terjual <white>{amount} <green>item seharga <white>{total}<green>."
+sell-success-multiplier: "{prefix}<green>Terjual <white>{amount} <green>item seharga <white>{total} <gray>(multiplier <gold>x{multiplier}<gray>)<green>."
+sell-nothing: "{prefix}<red>Tidak ada item drop OctaGens di inventory."
+sell-hand-not-drop: "{prefix}<red>Item di tangan bukan drop OctaGens."
+sell-cooldown: "{prefix}<red>Tunggu {seconds} detik lagi."
+sell-currency-unavailable: "{prefix}<red>Currency penjualan tidak tersedia."
+sell-cancelled: "{prefix}<red>Penjualan dibatalkan."
+sell-failed: "{prefix}<red>Gagal membayar, item tidak diambil."
+sell-gui-line: "<gray>- <white>{amount}x {name} <dark_gray>= <green>{money}"
+sell-gui-empty: "<red>Tidak ada drop untuk dijual"
+
+# --- weekend ---
+weekend-start:
+  - "{prefix}<gold><bold>WEEKEND BONUS DIMULAI!</bold> <yellow>Drop generator x<white>{multiplier}"
+  - "{prefix}<gray>Berlaku sampai <white>{end}"
+weekend-end: "{prefix}<gold>Weekend bonus telah berakhir. Sampai jumpa akhir pekan depan!"
+weekend-bossbar: "<gold><bold>Weekend Bonus <white>{multiplier} <gray>- sisa <yellow>{remaining}"
+weekend-actionbar: "<gold>Weekend Bonus <white>{multiplier} <gray>- sisa <yellow>{remaining}"
+bonus-set: "{prefix}<green>Event bonus drop <white>x{multiplier} <green>aktif selama <white>{duration}<green>."
+bonus-cleared: "{prefix}<green>Event bonus manual dihentikan."
+
+# --- command lain ---
+give-success: "{prefix}<green>Memberi <white>{amount}x {name} <green>ke <white>{player}<green>."
+give-received: "{prefix}<green>Kamu menerima <white>{amount}x {name}<green>."
+remove-success: "{prefix}<green>Menghapus <white>{generators} <green>generator dan <white>{energies} <green>energy milik <white>{player}<green>."
+list-header: "{prefix}<white>Generator <aqua>{generators}<gray>/<aqua>{generators_max} <dark_gray>| <white>Energy <aqua>{energies}<gray>/<aqua>{energy_max} <dark_gray>| <white>Total <aqua>{mcu} Mcu/s"
+list-empty: "{prefix}<gray>Kamu belum memasang generator atau energy."
+list-generator-line: " <dark_gray>• {name} <gray>x<white>{count}"
+list-energy-line: " <dark_gray>• {name} <gray>x<white>{count}"
+
+# --- placeholder PAPI ---
+placeholder-yes: "Ya"
+placeholder-no: "Tidak"
+placeholder-unlimited: "∞"

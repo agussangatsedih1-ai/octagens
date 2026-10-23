@@ -36,11 +36,14 @@ public final class Settings {
     public Set<String> blacklistedWorlds = new HashSet<>();
 
     public boolean energyRequired, distance2D, sharedEnergy;
-    public double minEfficiency, maxDistance;
+    public double maxDistance;
+    public double mcuMaxDefault, mcuMaxLimit, upgradeStep, upgradeCostBase, upgradeCostIncrease;
+    public String upgradeCurrency;
+    public int energySaveTicks;
 
-    public boolean holoEnabled;
-    public double holoHeight;
-    public int holoInterval;
+    public boolean holoEnabled, holoOnPlace, holoOnInteract, holoOnDrop;
+    public double holoHeight, holoNearbyRadius;
+    public int holoDuration, holoDropCooldown;
     public float holoViewRange;
     public List<String> holoLines = new ArrayList<>();
     public final Map<String, String> holoStatus = new HashMap<>();
@@ -56,7 +59,7 @@ public final class Settings {
     public boolean logSell, logPurchase;
     public String logFile;
 
-    public boolean cpPlacement, cpRemoval, cpOregen, cpTransactions;
+    public boolean cpPlacement, cpRemoval, cpOregen, cpTransactions, cpSellwand;
     public boolean hookMmo, hookIa, hookEe;
     public boolean verifyBlocks;
 
@@ -93,7 +96,7 @@ public final class Settings {
         maxStoredDrops = Math.max(1, c.getInt("generators.max-stored-drops", 512));
         requireFreeSpace = c.getBoolean("generators.require-free-space-above", true);
         dropInvulnerable = c.getBoolean("generators.drop-invulnerable", true);
-        pickupRequireEmptyHand = c.getBoolean("generators.pickup-require-empty-hand", true);
+        pickupRequireEmptyHand = c.getBoolean("generators.pickup-require-empty-hand", false);
         manageGui = c.getBoolean("generators.manage-gui", true);
         tickInterval = Math.max(1, c.getInt("generators.tick-interval-ticks", 10));
         fullRecheckTicks = Math.max(1, c.getInt("generators.full-recheck-ticks", 40));
@@ -101,14 +104,25 @@ public final class Settings {
         for (String w : c.getStringList("generators.blacklisted-worlds")) blacklistedWorlds.add(w.toLowerCase(Locale.ROOT));
 
         energyRequired = c.getBoolean("energy.required", true);
-        minEfficiency = Math.max(0, Math.min(1, c.getDouble("energy.min-efficiency", 0.0)));
+        mcuMaxLimit = Math.max(1, c.getDouble("energy.max-limit", 10_000_000));
+        mcuMaxDefault = Math.max(1, Math.min(mcuMaxLimit, c.getDouble("energy.max-default", 2000)));
+        upgradeStep = Math.max(1, c.getDouble("energy.upgrade.step", 1000));
+        upgradeCostBase = Math.max(0, c.getDouble("energy.upgrade.cost-base", 5_000_000));
+        upgradeCostIncrease = Math.max(0, c.getDouble("energy.upgrade.cost-increase", 0.25));
+        upgradeCurrency = c.getString("energy.upgrade.currency", "vault");
+        energySaveTicks = Math.max(200, c.getInt("energy.autosave-seconds", 300) * 20);
         maxDistance = Math.max(1, c.getDouble("energy.max-distance", 64));
         distance2D = c.getString("energy.distance-mode", "3D").equalsIgnoreCase("2D");
         sharedEnergy = c.getBoolean("energy.shared-energy", false);
 
         holoEnabled = c.getBoolean("hologram.enabled", true);
         holoHeight = c.getDouble("hologram.height", 1.9);
-        holoInterval = Math.max(5, c.getInt("hologram.update-interval-ticks", 40));
+        holoDuration = Math.max(10, c.getInt("hologram.duration-ticks", 80));
+        holoOnPlace = c.getBoolean("hologram.show-on.place", true);
+        holoOnInteract = c.getBoolean("hologram.show-on.interact", true);
+        holoOnDrop = c.getBoolean("hologram.show-on.drop", true);
+        holoNearbyRadius = Math.max(1, c.getDouble("hologram.drop-nearby-radius", 8));
+        holoDropCooldown = Math.max(20, c.getInt("hologram.drop-cooldown-ticks", 100));
         holoViewRange = (float) Math.max(0.1, c.getDouble("hologram.view-range", 0.6));
         holoLines = new ArrayList<>(c.getStringList("hologram.lines"));
         holoStatus.clear();
@@ -135,6 +149,7 @@ public final class Settings {
         cpRemoval = c.getBoolean("coreprotect.log-removal", true);
         cpOregen = c.getBoolean("coreprotect.log-oregen", true);
         cpTransactions = c.getBoolean("coreprotect.log-transactions", true);
+        cpSellwand = c.getBoolean("coreprotect.log-sellwand", true);
 
         hookMmo = c.getBoolean("hooks.mmoitems", true);
         hookIa = c.getBoolean("hooks.itemsadder", true);

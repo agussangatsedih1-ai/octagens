@@ -3,7 +3,6 @@ package com.octagens.plugin.manager;
 import com.octagens.plugin.OctaGensPlugin;
 import com.octagens.plugin.storage.Database;
 import org.bukkit.Bukkit;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.permissions.PermissionAttachmentInfo;
 
@@ -57,8 +56,7 @@ public final class SlotManager {
         b[0] = Math.max(0, b[0] + genDelta);
         b[1] = Math.max(0, b[1] + energyDelta);
         cache.remove(id);
-        OfflinePlayer op = Bukkit.getOfflinePlayer(id);
-        plugin.database().savePlayer(new Database.PlayerRow(id, op.getName(), b[0], b[1]));
+        plugin.energy().savePlayer(id);
     }
 
     public int generatorLimit(Player p) {

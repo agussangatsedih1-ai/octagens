@@ -3,6 +3,7 @@ package com.octagens.plugin.item;
 import com.octagens.plugin.OctaGensPlugin;
 import com.octagens.plugin.model.EnergyType;
 import com.octagens.plugin.model.GeneratorType;
+import com.octagens.plugin.model.SellwandType;
 import com.octagens.plugin.hook.Currency;
 import com.octagens.plugin.util.Fmt;
 import com.octagens.plugin.util.Keys;
@@ -316,6 +317,55 @@ public final class ItemService {
         ItemStack out = proto.clone();
         out.setAmount(Math.max(1, amount));
         return out;
+    }
+
+    // ------------------------------------------------------------------ sellwand
+
+    public Map<String, String> wandRepl(SellwandType t, int uses) {
+        Map<String, String> r = new HashMap<>();
+        r.put("id", t.id);
+        r.put("uses", uses < 0 ? "\u221e" : String.valueOf(uses));
+        r.put("multiplier", Fmt.number(t.multiplier));
+        r.put("cooldown", Fmt.number(t.cooldownMs / 1000.0));
+        return r;
+    }
+
+    /** Builds a sellwand item. {@code uses} below 0 means unlimited. Null when the base item cannot be resolved. */
+    public ItemStack wandItem(SellwandType t, int uses, int amount) {
+        ItemSpec spec = t.spec.copy();
+        spec.amount = 1;
+        if (spec.name == null) spec.name = "<gold>Sellwand";
+        ItemStack st = build(spec, wandRepl(t, uses), null);
+        if (st == null) return null;
+        ItemMeta meta = st.getItemMeta();
+        PersistentDataContainer pdc = meta.getPersistentDataContainer();
+        pdc.set(keys().wand, PersistentDataType.STRING, t.id);
+        pdc.set(keys().wandUses, PersistentDataType.INTEGER, uses);
+        try {
+            meta.setMaxStackSize(1);
+        } catch (Throwable ignored) {
+            // older API
+        }
+        st.setItemMeta(meta);
+        st.setAmount(Math.max(1, amount));
+        return st;
+    }
+
+    public String wandId(ItemStack s) {
+        return readTag(s, keys().wand);
+    }
+
+    /** Remaining uses stored on the wand (-1 = unlimited, 0 when the tag is missing). */
+    public int wandUses(ItemStack s) {
+        if (s == null || !s.hasItemMeta()) return 0;
+        Integer v = s.getItemMeta().getPersistentDataContainer().get(keys().wandUses, PersistentDataType.INTEGER);
+        return v == null ? 0 : v;
+    }
+
+    /** Rewrites name/lore/PDC of an existing wand stack with a new remaining-uses value. */
+    public void refreshWand(ItemStack stack, SellwandType t, int uses) {
+        ItemStack fresh = wandItem(t, uses, 1);
+        if (fresh != null) stack.setItemMeta(fresh.getItemMeta());
     }
 
     // ------------------------------------------------------------------ identification

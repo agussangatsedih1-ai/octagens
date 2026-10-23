@@ -7,6 +7,7 @@ import com.octagens.plugin.model.GeneratorType;
 import com.octagens.plugin.util.Fmt;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.permissions.PermissionAttachmentInfo;
@@ -18,8 +19,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.IntConsumer;
 
-/** Selling of OctaGens drops (identified by PDC). */
+/** Selling of OctaGens drops (identified by PDC) from the player inventory or from a container (sellwand). */
 public final class SellManager {
     private static final class Group {
         final Currency currency;
@@ -66,16 +68,8 @@ public final class SellManager {
         return best;
     }
 
-    private Map<String, Group> scan(Player p, boolean handOnly, boolean[] unavailable) {
+    private Map<String, Group> scan(ItemStack[] contents, int from, int to, boolean[] unavailable) {
         Map<String, Group> groups = new LinkedHashMap<>();
-        PlayerInventory inv = p.getInventory();
-        ItemStack[] contents = inv.getStorageContents();
-        int from = 0;
-        int to = contents.length;
-        if (handOnly) {
-            from = inv.getHeldItemSlot();
-            to = from + 1;
-        }
         for (int i = from; i < to && i < contents.length; i++) {
             ItemStack s = contents[i];
             String id = plugin.items().dropId(s);
@@ -97,7 +91,8 @@ public final class SellManager {
 
     public Preview preview(Player p) {
         double mult = multiplier(p);
-        Map<String, Group> groups = scan(p, false, new boolean[1]);
+        ItemStack[] contents = p.getInventory().getStorageContents();
+        Map<String, Group> groups = scan(contents, 0, contents.length, new boolean[1]);
         List<String> lines = new ArrayList<>();
         List<String> totals = new ArrayList<>();
         int count = 0;
@@ -117,7 +112,7 @@ public final class SellManager {
         return new Preview(lines, count, totals.isEmpty() ? "-" : String.join(", ", totals), mult);
     }
 
-    /** Sells drops. Returns true if at least one group was sold. */
+    /** Sells drops from the player's own inventory. Returns true if at least one group was sold. */
     public boolean sell(Player p, boolean handOnly) {
         long now = System.currentTimeMillis();
         long cd = plugin.settings().sellCooldownMs;
@@ -128,16 +123,43 @@ public final class SellManager {
         }
         cooldown.put(p.getUniqueId(), now);
 
+        PlayerInventory inv = p.getInventory();
+        ItemStack[] contents = inv.getStorageContents();
+        int from = 0;
+        int to = contents.length;
+        if (handOnly) {
+            from = inv.getHeldItemSlot();
+            to = from + 1;
+        }
         boolean[] unavailable = new boolean[1];
-        Map<String, Group> groups = scan(p, handOnly, unavailable);
+        Map<String, Group> groups = scan(contents, from, to, unavailable);
         if (groups.isEmpty()) {
             if (unavailable[0]) plugin.messages().send(p, "sell-currency-unavailable");
             else plugin.messages().send(p, handOnly ? "sell-hand-not-drop" : "sell-nothing");
             return false;
         }
-        double mult = multiplier(p);
-        PlayerInventory inv = p.getInventory();
-        boolean any = false;
+        return payout(p, groups, multiplier(p), slot -> inv.setItem(slot, null), "sell", "sell-success", "sell-success-multiplier") > 0;
+    }
+
+    /**
+     * Sells every OctaGens drop stored in the given container inventory (sellwand).
+     * @param extraMultiplier multiplier of the wand, applied on top of the player's permission multiplier
+     * @return number of items sold (0 = nothing was sold; a message about currencies is sent if relevant)
+     */
+    public int sellContainer(Player p, Inventory inv, double extraMultiplier) {
+        boolean[] unavailable = new boolean[1];
+        ItemStack[] contents = inv.getContents();
+        Map<String, Group> groups = scan(contents, 0, contents.length, unavailable);
+        if (groups.isEmpty()) {
+            if (unavailable[0]) plugin.messages().send(p, "sell-currency-unavailable");
+            return 0;
+        }
+        double mult = multiplier(p) * Math.max(0, extraMultiplier);
+        return payout(p, groups, mult, slot -> inv.setItem(slot, null), "sellwand", "sellwand-success", "sellwand-success");
+    }
+
+    private int payout(Player p, Map<String, Group> groups, double mult, IntConsumer clearSlot, String source, String keyPlain, String keyMult) {
+        int soldItems = 0;
         for (Group g : groups.values()) {
             double total = g.base * mult;
             DropSellEvent ev = new DropSellEvent(p, g.currency.id(), new LinkedHashMap<>(g.items), total, mult);
@@ -151,16 +173,16 @@ public final class SellManager {
                 plugin.messages().send(p, "sell-failed");
                 continue;
             }
-            for (int slot : g.slots) inv.setItem(slot, null);
-            any = true;
+            for (int slot : g.slots) clearSlot.accept(slot);
             int amount = g.items.values().stream().mapToInt(Integer::intValue).sum();
+            soldItems += amount;
             String totalText = g.currency.format(total);
-            plugin.messages().send(p, mult > 1.0 ? "sell-success-multiplier" : "sell-success",
+            plugin.messages().send(p, mult > 1.0 + 1e-9 ? keyMult : keyPlain,
                     "amount", String.valueOf(amount), "total", totalText, "multiplier", Fmt.number(mult));
-            String summary = "menjual " + amount + " item (" + g.items + ") = " + totalText + " x" + Fmt.number(mult);
+            String summary = source + ": menjual " + amount + " item (" + g.items + ") = " + totalText + " x" + Fmt.number(mult);
             plugin.txLog().log(true, p.getName(), summary, total);
-            if (plugin.settings().cpTransactions) plugin.hooks().cp().logTransaction(p, "octagens-sell " + amount + " item " + total);
+            if (plugin.settings().cpTransactions) plugin.hooks().cp().logTransaction(p, "octagens-" + source + " " + amount + " item " + total);
         }
-        return any;
+        return soldItems;
     }
 }

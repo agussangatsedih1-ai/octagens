@@ -50,7 +50,7 @@ public final class GuiManager {
         switch (id.toLowerCase(Locale.ROOT)) {
             case "main" -> openMain(p);
             case "shop" -> openShop(p, data.get("page") instanceof Integer i ? i : 1);
-            case "energyshop" -> openEnergyShop(p, data.get("page") instanceof Integer i ? i : 1);
+            case "energyshop", "magiculeshop" -> openEnergyShop(p, data.get("page") instanceof Integer i ? i : 1);
             case "sell" -> openSell(p);
             case "confirm" -> {
                 if (data.get("kind") != null && data.get("id") != null) {
@@ -91,7 +91,34 @@ public final class GuiManager {
         r.put("player", p.getName());
         r.put("generators", String.valueOf(plugin.generators().count(p.getUniqueId())));
         r.put("energies", String.valueOf(plugin.energy().count(p.getUniqueId())));
+        mcuRepl(p, r);
         return r;
+    }
+
+    /** Magicule placeholders: {mcu} {mcu_max} {regen} {level} {next_max} {price} {price10} {limit} {remaining}. */
+    private void mcuRepl(Player p, Map<String, String> r) {
+        com.octagens.plugin.manager.EnergyManager em = plugin.energy();
+        com.octagens.plugin.model.EnergyPool pool = em.pool(p.getUniqueId());
+        int level = em.level(pool);
+        int remaining = em.remainingLevels(pool);
+        com.octagens.plugin.hook.Currency c = plugin.hooks().currency(plugin.settings().upgradeCurrency);
+        r.put("mcu", Fmt.number(Math.floor(pool.current)));
+        r.put("mcu_max", Fmt.number(pool.max));
+        r.put("regen", Fmt.number(em.regenRate(p.getUniqueId())));
+        r.put("level", String.valueOf(level));
+        r.put("limit", Fmt.number(plugin.settings().mcuMaxLimit));
+        r.put("remaining", String.valueOf(remaining));
+        if (remaining <= 0) {
+            r.put("next_max", Fmt.number(pool.max));
+            r.put("price", plugin.messages().raw("upgrade-maxed"));
+            r.put("price10", plugin.messages().raw("upgrade-maxed"));
+        } else {
+            double one = em.upgradeCost(level, 1);
+            double ten = em.upgradeCost(level, Math.min(10, remaining));
+            r.put("next_max", Fmt.number(em.maxAfter(pool.max, 1)));
+            r.put("price", c != null ? c.format(one) : Fmt.money(one));
+            r.put("price10", c != null ? c.format(ten) : Fmt.money(ten));
+        }
     }
 
     private void addStatic(OctaGui g, GuiTemplate t, Player p, Map<String, String> repl) {
@@ -206,6 +233,7 @@ public final class GuiManager {
             });
         }
         addStatic(g, t, p, repl);
+        dynamicItems(g, t, p, "UPGRADE", null, repl);
         addNav(g, t, p, repl, r[0], r[1], pg -> openEnergyShop(p, pg));
         show(p, g);
     }
@@ -244,7 +272,9 @@ public final class GuiManager {
         repl.putAll(plugin.items().generatorRepl(gt));
         double eff = plugin.energy().efficiency(gen, gt);
         repl.put("owner", gen.ownerName == null ? "?" : gen.ownerName);
-        repl.put("supply", Fmt.number(gen.supply));
+        repl.put("supply", Fmt.number(plugin.energy().supply(gen)));
+        repl.put("pool", repl.get("mcu"));
+        repl.put("pool_max", repl.get("mcu_max"));
         repl.put("required", Fmt.number(gt.energyRequirement));
         repl.put("efficiency", Fmt.percent(eff));
         repl.put("status", plugin.settings().holoStatus.getOrDefault(gen.status.name(), gen.status.name()));
@@ -315,7 +345,24 @@ public final class GuiManager {
                     later(() -> open(p, back, Map.of("page", page)));
                 }
                 default -> {
-                    if (tag.startsWith("open:")) {
+                    if (tag.equals("upgrade") || tag.startsWith("upgrade:")) {
+                        int n = 1;
+                        if (tag.startsWith("upgrade:")) {
+                            String v = tag.substring(8);
+                            if (v.equals("max")) n = -1;
+                            else {
+                                try {
+                                    n = Integer.parseInt(v);
+                                } catch (NumberFormatException ex) {
+                                    n = 1;
+                                }
+                            }
+                        }
+                        plugin.energy().upgrade(p, n);
+                        String cur = gui.template.id;
+                        int page = gui.data.get("page") instanceof Integer i ? i : 1;
+                        later(() -> open(p, cur, Map.of("page", page)));
+                    } else if (tag.startsWith("open:")) {
                         String id = tag.substring(5);
                         Map<String, Object> copy = new HashMap<>(gui.data);
                         later(() -> open(p, id, copy));

@@ -55,6 +55,9 @@ final class OctaGensAPIImpl implements OctaGensAPI {
         return t == null ? 0 : plugin.energy().efficiency(g, t);
     }
 
+    @Override public double getMcuCurrent(UUID owner) { return plugin.energy().pool(owner).current; }
+    @Override public double getMcuMax(UUID owner) { return plugin.energy().pool(owner).max; }
+    @Override public double getMcuRegen(UUID owner) { return plugin.energy().regenRate(owner); }
     @Override public double getAverageEfficiency(UUID owner) { return plugin.energy().averageEfficiency(owner); }
     @Override public int getGeneratorLimit(UUID owner) { return plugin.slots().generatorLimit(owner); }
     @Override public int getEnergyLimit(UUID owner) { return plugin.slots().energyLimit(owner); }

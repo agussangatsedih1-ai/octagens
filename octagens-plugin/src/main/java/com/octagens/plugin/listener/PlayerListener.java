@@ -27,5 +27,6 @@ public final class PlayerListener implements Listener {
         plugin.slots().clear(id);
         plugin.sell().clear(id);
         plugin.weekend().onQuit(e.getPlayer());
+        plugin.energy().onQuit(id);
     }
 }

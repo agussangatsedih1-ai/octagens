@@ -11,24 +11,34 @@
 #    shop-price            harga di shop (angka besar aman, tipe double)
 #    currency              "vault" atau "excellenteconomy:<currency_id>" (harga beli)
 #    sell-currency         (opsional) currency saat menjual drop; default = currency
-#    drop-interval-ticks   interval drop dasar (20 ticks = 1 detik) pada efficiency 100%
+#    drop-interval-ticks   waktu antar drop (20 ticks = 1 detik). Setelah interval habis generator
+#                          "siap drop", tetapi baru benar-benar drop kalau Mcu pemilik cukup.
 #    drop-item             item drop: string ref ATAU section {item, name, lore, custom-model-data, glow}
-#                          (bisa diganti ke MMOITEMS:/ITEMSADDER:)
-#    drop-amount           jumlah drop per interval (dikali weekend bonus)
+#                          Lore drop memakai placeholder: {name} {tier} {drop_name} {interval} {amount}
+#                          {energy} {price} {sell_price}  -> pemain bisa melihat harga jual langsung di item.
+#    drop-amount           jumlah item per drop (dikali weekend bonus)
 #    sell-price            harga jual PER ITEM drop
-#    energy-requirement    kebutuhan energy (Mcu/s) untuk efficiency 100%
+#    energy-requirement    Mcu yang DIKONSUMSI setiap kali generator drop (bukan Mcu/s!)
 #    shop-slot             urutan tampil di shop (halaman dihitung otomatis)
 #    shop-icon             (opsional) override ikon shop: section {item, name, lore, ...}
 #    permission            (opsional) permission untuk membeli; kosong = bebas
-#    effects               partikel + suara saat drop (sound = ID suara Minecraft, mis. entity.experience_orb.pickup)
+#    effects               partikel + suara saat drop (sound = ID suara Minecraft)
 #
-#  RASIONAL energy-requirement (Mcu/s), skala energy: 0.5 / 1.2 / 4.8 / 16.2 / 24.6 / 120.5 / 200 / 210 / 250 / 500
-#    Tier 1-5   (0.5-5)     : 1-5 energy kecil (Glimmer Dust/Fey Spark/Lumina) sudah cukup.
-#    Tier 6-9   (8-30)      : butuh Lumina Essence / Hexa Flux / Wispfire.
-#    Tier 10-12 (45-100)    : butuh beberapa Wispfire atau 1 Ethereal Ichor.
-#    Tier 13-16 (140-450)   : butuh Ethereal Ichor / Astralite / Spectral Charge / Celestium.
-#    Tier 17-20 (700-2500)  : butuh banyak energy mahal; Genesis Relic (2500) = 5x Origin Pulse.
-#  Efficiency = min(1, supply / requirement). Supply 50% -> drop 50% lebih lambat.
+#  CARA KERJA ENERGY (Magicule / Mcu)
+#    - Tiap pemain punya satu pool Mcu. Semua energy yang dipasang pemain meregen Mcu/s ke pool itu,
+#      sampai penuh (maksimum default 2000, bisa di-upgrade pakai uang; lihat config.yml -> energy).
+#    - Generator hanya drop kalau (1) ada energy milik pemain dalam radius energy.max-distance dan
+#      (2) isi pool >= energy-requirement generator itu. Tiap drop memotong pool sebesar energy-requirement.
+#    - Sebelum pool mencapai energy-requirement generator berstatus "Energy kurang".
+#    - Jika energy-requirement > Mcu maksimum pemain, generator berstatus "Max Mcu kurang" -> upgrade dulu.
+#
+#  RASIONAL energy-requirement (Mcu per drop). Regen energy: 0.5 / 1.2 / 4.8 / 16.2 / 24.6 /
+#  120.5 / 200 / 210 / 250 / 500 Mcu/s.
+#    Tier 1-5    (5-80)       : cukup dengan beberapa energy kecil (Glimmer Dust, Fey Spark, Lumina).
+#    Tier 6-10   (120-500)    : butuh Hexa Flux / Wispfire / Ethereal Ichor agar tidak menunggu lama.
+#    Tier 11-15  (650-1500)   : butuh beberapa Ethereal Ichor / Astralite; masih muat di Mcu maksimum default 2000.
+#    Tier 16     (2000)       : persis kapasitas default; tiap drop menghabiskan seluruh pool.
+#    Tier 17-20  (3000-12000) : WAJIB upgrade Mcu maksimum (> 2000) + regen besar (Spectral/Celestium/Origin Pulse).
 # ======================================================================
 generators:
 
@@ -41,7 +51,7 @@ generators:
       - ""
       - "<gray>Drop: <white>{amount}x {drop_name} <gray>/ <white>{interval}s"
       - "<gray>Harga jual: <green>{sell_price} <gray>per item"
-      - "<gray>Butuh energy: <aqua>{energy} Mcu/s"
+      - "<gray>Konsumsi energy: <aqua>{energy} Mcu <gray>per drop"
       - ""
       - "<yellow>Pasang di tanah, lalu letakkan energy di dekatnya."
     block: "VANILLA:LAPIS_BLOCK"
@@ -53,13 +63,18 @@ generators:
       item: "VANILLA:GLOWSTONE_DUST"
       name: "<gradient:#a18cd1:#fbc2eb>Mana Dust</gradient>"
       lore:
-        - "<dark_gray>▪ <gray>Material sihir dari <white>Lesser Mana Generator"
-        - "<gray>Jual dengan <white>/octagens sell"
+        - "<dark_gray>▪ <gray>Material sihir hasil {name}"
+        - ""
+        - "<gray>Harga jual: <green>{sell_price} <gray>per item"
+        - "<gray>Tier generator: <white>#{tier}"
+        - "<gray>Asal: <white>{name}"
+        - ""
+        - "<yellow>Jual dengan <white>/octagens sell <yellow>atau <white>Sellwand"
       custom-model-data: 0
       glow: true
     drop-amount: 1
     sell-price: 10
-    energy-requirement: 0.5
+    energy-requirement: 5
     shop-slot: 1
     effects:
       enabled: true
@@ -78,7 +93,7 @@ generators:
       - ""
       - "<gray>Drop: <white>{amount}x {drop_name} <gray>/ <white>{interval}s"
       - "<gray>Harga jual: <green>{sell_price} <gray>per item"
-      - "<gray>Butuh energy: <aqua>{energy} Mcu/s"
+      - "<gray>Konsumsi energy: <aqua>{energy} Mcu <gray>per drop"
       - ""
       - "<yellow>Pasang di tanah, lalu letakkan energy di dekatnya."
     block: "VANILLA:AMETHYST_BLOCK"
@@ -90,13 +105,18 @@ generators:
       item: "VANILLA:AMETHYST_SHARD"
       name: "<gradient:#c471f5:#fa71cd>Arcane Shard</gradient>"
       lore:
-        - "<dark_gray>▪ <gray>Material sihir dari <white>Arcane Shard Generator"
-        - "<gray>Jual dengan <white>/octagens sell"
+        - "<dark_gray>▪ <gray>Material sihir hasil {name}"
+        - ""
+        - "<gray>Harga jual: <green>{sell_price} <gray>per item"
+        - "<gray>Tier generator: <white>#{tier}"
+        - "<gray>Asal: <white>{name}"
+        - ""
+        - "<yellow>Jual dengan <white>/octagens sell <yellow>atau <white>Sellwand"
       custom-model-data: 0
       glow: true
     drop-amount: 1
     sell-price: 20
-    energy-requirement: 1.0
+    energy-requirement: 10
     shop-slot: 2
     effects:
       enabled: true
@@ -115,7 +135,7 @@ generators:
       - ""
       - "<gray>Drop: <white>{amount}x {drop_name} <gray>/ <white>{interval}s"
       - "<gray>Harga jual: <green>{sell_price} <gray>per item"
-      - "<gray>Butuh energy: <aqua>{energy} Mcu/s"
+      - "<gray>Konsumsi energy: <aqua>{energy} Mcu <gray>per drop"
       - ""
       - "<yellow>Pasang di tanah, lalu letakkan energy di dekatnya."
     block: "VANILLA:PURPLE_GLAZED_TERRACOTTA"
@@ -127,13 +147,18 @@ generators:
       item: "VANILLA:ENDER_PEARL"
       name: "<gradient:#8e2de2:#4a00e0>Mystic Orb</gradient>"
       lore:
-        - "<dark_gray>▪ <gray>Material sihir dari <white>Mystic Orb Generator"
-        - "<gray>Jual dengan <white>/octagens sell"
+        - "<dark_gray>▪ <gray>Material sihir hasil {name}"
+        - ""
+        - "<gray>Harga jual: <green>{sell_price} <gray>per item"
+        - "<gray>Tier generator: <white>#{tier}"
+        - "<gray>Asal: <white>{name}"
+        - ""
+        - "<yellow>Jual dengan <white>/octagens sell <yellow>atau <white>Sellwand"
       custom-model-data: 0
       glow: true
     drop-amount: 1
     sell-price: 50
-    energy-requirement: 2.0
+    energy-requirement: 25
     shop-slot: 3
     effects:
       enabled: true
@@ -152,7 +177,7 @@ generators:
       - ""
       - "<gray>Drop: <white>{amount}x {drop_name} <gray>/ <white>{interval}s"
       - "<gray>Harga jual: <green>{sell_price} <gray>per item"
-      - "<gray>Butuh energy: <aqua>{energy} Mcu/s"
+      - "<gray>Konsumsi energy: <aqua>{energy} Mcu <gray>per drop"
       - ""
       - "<yellow>Pasang di tanah, lalu letakkan energy di dekatnya."
     block: "VANILLA:BOOKSHELF"
@@ -164,13 +189,18 @@ generators:
       item: "VANILLA:PAPER"
       name: "<gradient:#7f7fd5:#91eae4>Enchanted Rune</gradient>"
       lore:
-        - "<dark_gray>▪ <gray>Material sihir dari <white>Enchanted Rune Generator"
-        - "<gray>Jual dengan <white>/octagens sell"
+        - "<dark_gray>▪ <gray>Material sihir hasil {name}"
+        - ""
+        - "<gray>Harga jual: <green>{sell_price} <gray>per item"
+        - "<gray>Tier generator: <white>#{tier}"
+        - "<gray>Asal: <white>{name}"
+        - ""
+        - "<yellow>Jual dengan <white>/octagens sell <yellow>atau <white>Sellwand"
       custom-model-data: 0
       glow: true
     drop-amount: 1
     sell-price: 100
-    energy-requirement: 3.5
+    energy-requirement: 50
     shop-slot: 4
     effects:
       enabled: true
@@ -189,7 +219,7 @@ generators:
       - ""
       - "<gray>Drop: <white>{amount}x {drop_name} <gray>/ <white>{interval}s"
       - "<gray>Harga jual: <green>{sell_price} <gray>per item"
-      - "<gray>Butuh energy: <aqua>{energy} Mcu/s"
+      - "<gray>Konsumsi energy: <aqua>{energy} Mcu <gray>per drop"
       - ""
       - "<yellow>Pasang di tanah, lalu letakkan energy di dekatnya."
     block: "VANILLA:SOUL_SOIL"
@@ -201,13 +231,18 @@ generators:
       item: "VANILLA:GHAST_TEAR"
       name: "<gradient:#b24592:#f15f79>Soul Essence</gradient>"
       lore:
-        - "<dark_gray>▪ <gray>Material sihir dari <white>Soul Essence Generator"
-        - "<gray>Jual dengan <white>/octagens sell"
+        - "<dark_gray>▪ <gray>Material sihir hasil {name}"
+        - ""
+        - "<gray>Harga jual: <green>{sell_price} <gray>per item"
+        - "<gray>Tier generator: <white>#{tier}"
+        - "<gray>Asal: <white>{name}"
+        - ""
+        - "<yellow>Jual dengan <white>/octagens sell <yellow>atau <white>Sellwand"
       custom-model-data: 0
       glow: true
     drop-amount: 1
     sell-price: 100
-    energy-requirement: 5.0
+    energy-requirement: 80
     shop-slot: 5
     effects:
       enabled: true
@@ -226,7 +261,7 @@ generators:
       - ""
       - "<gray>Drop: <white>{amount}x {drop_name} <gray>/ <white>{interval}s"
       - "<gray>Harga jual: <green>{sell_price} <gray>per item"
-      - "<gray>Butuh energy: <aqua>{energy} Mcu/s"
+      - "<gray>Konsumsi energy: <aqua>{energy} Mcu <gray>per drop"
       - ""
       - "<yellow>Pasang di tanah, lalu letakkan energy di dekatnya."
     block: "VANILLA:PRISMARINE_BRICKS"
@@ -238,13 +273,18 @@ generators:
       item: "VANILLA:PRISMARINE_CRYSTALS"
       name: "<gradient:#4facfe:#00f2fe>Aether Crystal</gradient>"
       lore:
-        - "<dark_gray>▪ <gray>Material sihir dari <white>Aether Crystal Generator"
-        - "<gray>Jual dengan <white>/octagens sell"
+        - "<dark_gray>▪ <gray>Material sihir hasil {name}"
+        - ""
+        - "<gray>Harga jual: <green>{sell_price} <gray>per item"
+        - "<gray>Tier generator: <white>#{tier}"
+        - "<gray>Asal: <white>{name}"
+        - ""
+        - "<yellow>Jual dengan <white>/octagens sell <yellow>atau <white>Sellwand"
       custom-model-data: 0
       glow: true
     drop-amount: 1
     sell-price: 120
-    energy-requirement: 8.0
+    energy-requirement: 120
     shop-slot: 6
     effects:
       enabled: true
@@ -263,7 +303,7 @@ generators:
       - ""
       - "<gray>Drop: <white>{amount}x {drop_name} <gray>/ <white>{interval}s"
       - "<gray>Harga jual: <green>{sell_price} <gray>per item"
-      - "<gray>Butuh energy: <aqua>{energy} Mcu/s"
+      - "<gray>Konsumsi energy: <aqua>{energy} Mcu <gray>per drop"
       - ""
       - "<yellow>Pasang di tanah, lalu letakkan energy di dekatnya."
     block: "VANILLA:CRYING_OBSIDIAN"
@@ -275,13 +315,18 @@ generators:
       item: "VANILLA:ECHO_SHARD"
       name: "<gradient:#6a11cb:#2575fc>Arcane Core</gradient>"
       lore:
-        - "<dark_gray>▪ <gray>Material sihir dari <white>Arcane Core Generator"
-        - "<gray>Jual dengan <white>/octagens sell"
+        - "<dark_gray>▪ <gray>Material sihir hasil {name}"
+        - ""
+        - "<gray>Harga jual: <green>{sell_price} <gray>per item"
+        - "<gray>Tier generator: <white>#{tier}"
+        - "<gray>Asal: <white>{name}"
+        - ""
+        - "<yellow>Jual dengan <white>/octagens sell <yellow>atau <white>Sellwand"
       custom-model-data: 0
       glow: true
     drop-amount: 1
     sell-price: 150
-    energy-requirement: 12.0
+    energy-requirement: 180
     shop-slot: 7
     effects:
       enabled: true
@@ -300,7 +345,7 @@ generators:
       - ""
       - "<gray>Drop: <white>{amount}x {drop_name} <gray>/ <white>{interval}s"
       - "<gray>Harga jual: <green>{sell_price} <gray>per item"
-      - "<gray>Butuh energy: <aqua>{energy} Mcu/s"
+      - "<gray>Konsumsi energy: <aqua>{energy} Mcu <gray>per drop"
       - ""
       - "<yellow>Pasang di tanah, lalu letakkan energy di dekatnya."
     block: "VANILLA:PURPUR_BLOCK"
@@ -312,13 +357,18 @@ generators:
       item: "VANILLA:PHANTOM_MEMBRANE"
       name: "<gradient:#cc2b5e:#753a88>Phantom Relic</gradient>"
       lore:
-        - "<dark_gray>▪ <gray>Material sihir dari <white>Phantom Relic Generator"
-        - "<gray>Jual dengan <white>/octagens sell"
+        - "<dark_gray>▪ <gray>Material sihir hasil {name}"
+        - ""
+        - "<gray>Harga jual: <green>{sell_price} <gray>per item"
+        - "<gray>Tier generator: <white>#{tier}"
+        - "<gray>Asal: <white>{name}"
+        - ""
+        - "<yellow>Jual dengan <white>/octagens sell <yellow>atau <white>Sellwand"
       custom-model-data: 0
       glow: true
     drop-amount: 1
     sell-price: 200
-    energy-requirement: 18.0
+    energy-requirement: 250
     shop-slot: 8
     effects:
       enabled: true
@@ -337,7 +387,7 @@ generators:
       - ""
       - "<gray>Drop: <white>{amount}x {drop_name} <gray>/ <white>{interval}s"
       - "<gray>Harga jual: <green>{sell_price} <gray>per item"
-      - "<gray>Butuh energy: <aqua>{energy} Mcu/s"
+      - "<gray>Konsumsi energy: <aqua>{energy} Mcu <gray>per drop"
       - ""
       - "<yellow>Pasang di tanah, lalu letakkan energy di dekatnya."
     block: "VANILLA:SEA_LANTERN"
@@ -349,13 +399,18 @@ generators:
       item: "VANILLA:HEART_OF_THE_SEA"
       name: "<gradient:#11998e:#38ef7d>Mana Heart</gradient>"
       lore:
-        - "<dark_gray>▪ <gray>Material sihir dari <white>Mana Heart Generator"
-        - "<gray>Jual dengan <white>/octagens sell"
+        - "<dark_gray>▪ <gray>Material sihir hasil {name}"
+        - ""
+        - "<gray>Harga jual: <green>{sell_price} <gray>per item"
+        - "<gray>Tier generator: <white>#{tier}"
+        - "<gray>Asal: <white>{name}"
+        - ""
+        - "<yellow>Jual dengan <white>/octagens sell <yellow>atau <white>Sellwand"
       custom-model-data: 0
       glow: true
     drop-amount: 1
     sell-price: 500
-    energy-requirement: 30.0
+    energy-requirement: 350
     shop-slot: 9
     effects:
       enabled: true
@@ -374,7 +429,7 @@ generators:
       - ""
       - "<gray>Drop: <white>{amount}x {drop_name} <gray>/ <white>{interval}s"
       - "<gray>Harga jual: <green>{sell_price} <gray>per item"
-      - "<gray>Butuh energy: <aqua>{energy} Mcu/s"
+      - "<gray>Konsumsi energy: <aqua>{energy} Mcu <gray>per drop"
       - ""
       - "<yellow>Pasang di tanah, lalu letakkan energy di dekatnya."
     block: "VANILLA:GOLD_BLOCK"
@@ -386,13 +441,18 @@ generators:
       item: "VANILLA:TOTEM_OF_UNDYING"
       name: "<gradient:#f7971e:#ffd200>Runic Artifact</gradient>"
       lore:
-        - "<dark_gray>▪ <gray>Material sihir dari <white>Runic Artifact Generator"
-        - "<gray>Jual dengan <white>/octagens sell"
+        - "<dark_gray>▪ <gray>Material sihir hasil {name}"
+        - ""
+        - "<gray>Harga jual: <green>{sell_price} <gray>per item"
+        - "<gray>Tier generator: <white>#{tier}"
+        - "<gray>Asal: <white>{name}"
+        - ""
+        - "<yellow>Jual dengan <white>/octagens sell <yellow>atau <white>Sellwand"
       custom-model-data: 0
       glow: true
     drop-amount: 1
     sell-price: 750
-    energy-requirement: 45.0
+    energy-requirement: 500
     shop-slot: 10
     effects:
       enabled: true
@@ -411,7 +471,7 @@ generators:
       - ""
       - "<gray>Drop: <white>{amount}x {drop_name} <gray>/ <white>{interval}s"
       - "<gray>Harga jual: <green>{sell_price} <gray>per item"
-      - "<gray>Butuh energy: <aqua>{energy} Mcu/s"
+      - "<gray>Konsumsi energy: <aqua>{energy} Mcu <gray>per drop"
       - ""
       - "<yellow>Pasang di tanah, lalu letakkan energy di dekatnya."
     block: "VANILLA:SHROOMLIGHT"
@@ -423,13 +483,18 @@ generators:
       item: "VANILLA:BLAZE_POWDER"
       name: "<gradient:#f12711:#f5af19>Elemental Essence</gradient>"
       lore:
-        - "<dark_gray>▪ <gray>Material sihir dari <white>Elemental Essence Generator"
-        - "<gray>Jual dengan <white>/octagens sell"
+        - "<dark_gray>▪ <gray>Material sihir hasil {name}"
+        - ""
+        - "<gray>Harga jual: <green>{sell_price} <gray>per item"
+        - "<gray>Tier generator: <white>#{tier}"
+        - "<gray>Asal: <white>{name}"
+        - ""
+        - "<yellow>Jual dengan <white>/octagens sell <yellow>atau <white>Sellwand"
       custom-model-data: 0
       glow: true
     drop-amount: 1
     sell-price: 1000
-    energy-requirement: 70.0
+    energy-requirement: 650
     shop-slot: 11
     effects:
       enabled: true
@@ -448,7 +513,7 @@ generators:
       - ""
       - "<gray>Drop: <white>{amount}x {drop_name} <gray>/ <white>{interval}s"
       - "<gray>Harga jual: <green>{sell_price} <gray>per item"
-      - "<gray>Butuh energy: <aqua>{energy} Mcu/s"
+      - "<gray>Konsumsi energy: <aqua>{energy} Mcu <gray>per drop"
       - ""
       - "<yellow>Pasang di tanah, lalu letakkan energy di dekatnya."
     block: "VANILLA:DIAMOND_BLOCK"
@@ -460,13 +525,18 @@ generators:
       item: "VANILLA:DIAMOND"
       name: "<gradient:#00c6ff:#0072ff>Astral Gem</gradient>"
       lore:
-        - "<dark_gray>▪ <gray>Material sihir dari <white>Astral Gem Generator"
-        - "<gray>Jual dengan <white>/octagens sell"
+        - "<dark_gray>▪ <gray>Material sihir hasil {name}"
+        - ""
+        - "<gray>Harga jual: <green>{sell_price} <gray>per item"
+        - "<gray>Tier generator: <white>#{tier}"
+        - "<gray>Asal: <white>{name}"
+        - ""
+        - "<yellow>Jual dengan <white>/octagens sell <yellow>atau <white>Sellwand"
       custom-model-data: 0
       glow: true
     drop-amount: 1
     sell-price: 1200
-    energy-requirement: 100.0
+    energy-requirement: 800
     shop-slot: 12
     effects:
       enabled: true
@@ -485,7 +555,7 @@ generators:
       - ""
       - "<gray>Drop: <white>{amount}x {drop_name} <gray>/ <white>{interval}s"
       - "<gray>Harga jual: <green>{sell_price} <gray>per item"
-      - "<gray>Butuh energy: <aqua>{energy} Mcu/s"
+      - "<gray>Konsumsi energy: <aqua>{energy} Mcu <gray>per drop"
       - ""
       - "<yellow>Pasang di tanah, lalu letakkan energy di dekatnya."
     block: "VANILLA:OBSIDIAN"
@@ -497,13 +567,18 @@ generators:
       item: "VANILLA:ENDER_EYE"
       name: "<gradient:#41295a:#2f0743>Void Fragment</gradient>"
       lore:
-        - "<dark_gray>▪ <gray>Material sihir dari <white>Void Fragment Generator"
-        - "<gray>Jual dengan <white>/octagens sell"
+        - "<dark_gray>▪ <gray>Material sihir hasil {name}"
+        - ""
+        - "<gray>Harga jual: <green>{sell_price} <gray>per item"
+        - "<gray>Tier generator: <white>#{tier}"
+        - "<gray>Asal: <white>{name}"
+        - ""
+        - "<yellow>Jual dengan <white>/octagens sell <yellow>atau <white>Sellwand"
       custom-model-data: 0
       glow: true
     drop-amount: 1
     sell-price: 5000
-    energy-requirement: 140.0
+    energy-requirement: 1000
     shop-slot: 13
     effects:
       enabled: true
@@ -522,7 +597,7 @@ generators:
       - ""
       - "<gray>Drop: <white>{amount}x {drop_name} <gray>/ <white>{interval}s"
       - "<gray>Harga jual: <green>{sell_price} <gray>per item"
-      - "<gray>Butuh energy: <aqua>{energy} Mcu/s"
+      - "<gray>Konsumsi energy: <aqua>{energy} Mcu <gray>per drop"
       - ""
       - "<yellow>Pasang di tanah, lalu letakkan energy di dekatnya."
     block: "VANILLA:GILDED_BLACKSTONE"
@@ -534,13 +609,18 @@ generators:
       item: "VANILLA:WITHER_ROSE"
       name: "<gradient:#cb2d3e:#ef473a>Cursed Relic</gradient>"
       lore:
-        - "<dark_gray>▪ <gray>Material sihir dari <white>Cursed Relic Generator"
-        - "<gray>Jual dengan <white>/octagens sell"
+        - "<dark_gray>▪ <gray>Material sihir hasil {name}"
+        - ""
+        - "<gray>Harga jual: <green>{sell_price} <gray>per item"
+        - "<gray>Tier generator: <white>#{tier}"
+        - "<gray>Asal: <white>{name}"
+        - ""
+        - "<yellow>Jual dengan <white>/octagens sell <yellow>atau <white>Sellwand"
       custom-model-data: 0
       glow: true
     drop-amount: 1
     sell-price: 7500
-    energy-requirement: 200.0
+    energy-requirement: 1200
     shop-slot: 14
     effects:
       enabled: true
@@ -559,7 +639,7 @@ generators:
       - ""
       - "<gray>Drop: <white>{amount}x {drop_name} <gray>/ <white>{interval}s"
       - "<gray>Harga jual: <green>{sell_price} <gray>per item"
-      - "<gray>Butuh energy: <aqua>{energy} Mcu/s"
+      - "<gray>Konsumsi energy: <aqua>{energy} Mcu <gray>per drop"
       - ""
       - "<yellow>Pasang di tanah, lalu letakkan energy di dekatnya."
     block: "VANILLA:END_STONE_BRICKS"
@@ -571,13 +651,18 @@ generators:
       item: "VANILLA:DRAGON_BREATH"
       name: "<gradient:#ff512f:#dd2476>Dragon Soul</gradient>"
       lore:
-        - "<dark_gray>▪ <gray>Material sihir dari <white>Dragon Soul Generator"
-        - "<gray>Jual dengan <white>/octagens sell"
+        - "<dark_gray>▪ <gray>Material sihir hasil {name}"
+        - ""
+        - "<gray>Harga jual: <green>{sell_price} <gray>per item"
+        - "<gray>Tier generator: <white>#{tier}"
+        - "<gray>Asal: <white>{name}"
+        - ""
+        - "<yellow>Jual dengan <white>/octagens sell <yellow>atau <white>Sellwand"
       custom-model-data: 0
       glow: true
     drop-amount: 1
     sell-price: 10000
-    energy-requirement: 300.0
+    energy-requirement: 1500
     shop-slot: 15
     effects:
       enabled: true
@@ -596,7 +681,7 @@ generators:
       - ""
       - "<gray>Drop: <white>{amount}x {drop_name} <gray>/ <white>{interval}s"
       - "<gray>Harga jual: <green>{sell_price} <gray>per item"
-      - "<gray>Butuh energy: <aqua>{energy} Mcu/s"
+      - "<gray>Konsumsi energy: <aqua>{energy} Mcu <gray>per drop"
       - ""
       - "<yellow>Pasang di tanah, lalu letakkan energy di dekatnya."
     block: "VANILLA:GLOWSTONE"
@@ -608,13 +693,18 @@ generators:
       item: "VANILLA:NETHER_STAR"
       name: "<gradient:#fceabb:#f8b500>Divine Artifact</gradient>"
       lore:
-        - "<dark_gray>▪ <gray>Material sihir dari <white>Divine Artifact Generator"
-        - "<gray>Jual dengan <white>/octagens sell"
+        - "<dark_gray>▪ <gray>Material sihir hasil {name}"
+        - ""
+        - "<gray>Harga jual: <green>{sell_price} <gray>per item"
+        - "<gray>Tier generator: <white>#{tier}"
+        - "<gray>Asal: <white>{name}"
+        - ""
+        - "<yellow>Jual dengan <white>/octagens sell <yellow>atau <white>Sellwand"
       custom-model-data: 0
       glow: true
     drop-amount: 1
     sell-price: 12000
-    energy-requirement: 450.0
+    energy-requirement: 2000
     shop-slot: 16
     effects:
       enabled: true
@@ -633,7 +723,7 @@ generators:
       - ""
       - "<gray>Drop: <white>{amount}x {drop_name} <gray>/ <white>{interval}s"
       - "<gray>Harga jual: <green>{sell_price} <gray>per item"
-      - "<gray>Butuh energy: <aqua>{energy} Mcu/s"
+      - "<gray>Konsumsi energy: <aqua>{energy} Mcu <gray>per drop"
       - ""
       - "<yellow>Pasang di tanah, lalu letakkan energy di dekatnya."
     block: "VANILLA:EMERALD_BLOCK"
@@ -645,13 +735,18 @@ generators:
       item: "VANILLA:EXPERIENCE_BOTTLE"
       name: "<gradient:#56ab2f:#a8e063>Eternal Mana</gradient>"
       lore:
-        - "<dark_gray>▪ <gray>Material sihir dari <white>Eternal Mana Generator"
-        - "<gray>Jual dengan <white>/octagens sell"
+        - "<dark_gray>▪ <gray>Material sihir hasil {name}"
+        - ""
+        - "<gray>Harga jual: <green>{sell_price} <gray>per item"
+        - "<gray>Tier generator: <white>#{tier}"
+        - "<gray>Asal: <white>{name}"
+        - ""
+        - "<yellow>Jual dengan <white>/octagens sell <yellow>atau <white>Sellwand"
       custom-model-data: 0
       glow: true
     drop-amount: 1
     sell-price: 15000
-    energy-requirement: 700.0
+    energy-requirement: 3000
     shop-slot: 17
     effects:
       enabled: true
@@ -670,7 +765,7 @@ generators:
       - ""
       - "<gray>Drop: <white>{amount}x {drop_name} <gray>/ <white>{interval}s"
       - "<gray>Harga jual: <green>{sell_price} <gray>per item"
-      - "<gray>Butuh energy: <aqua>{energy} Mcu/s"
+      - "<gray>Konsumsi energy: <aqua>{energy} Mcu <gray>per drop"
       - ""
       - "<yellow>Pasang di tanah, lalu letakkan energy di dekatnya."
     block: "VANILLA:OCHRE_FROGLIGHT"
@@ -682,13 +777,18 @@ generators:
       item: "VANILLA:END_CRYSTAL"
       name: "<gradient:#ee9ca7:#ffdde1>Primordial Rune</gradient>"
       lore:
-        - "<dark_gray>▪ <gray>Material sihir dari <white>Primordial Rune Generator"
-        - "<gray>Jual dengan <white>/octagens sell"
+        - "<dark_gray>▪ <gray>Material sihir hasil {name}"
+        - ""
+        - "<gray>Harga jual: <green>{sell_price} <gray>per item"
+        - "<gray>Tier generator: <white>#{tier}"
+        - "<gray>Asal: <white>{name}"
+        - ""
+        - "<yellow>Jual dengan <white>/octagens sell <yellow>atau <white>Sellwand"
       custom-model-data: 0
       glow: true
     drop-amount: 1
     sell-price: 17000
-    energy-requirement: 1000.0
+    energy-requirement: 5000
     shop-slot: 18
     effects:
       enabled: true
@@ -707,7 +807,7 @@ generators:
       - ""
       - "<gray>Drop: <white>{amount}x {drop_name} <gray>/ <white>{interval}s"
       - "<gray>Harga jual: <green>{sell_price} <gray>per item"
-      - "<gray>Butuh energy: <aqua>{energy} Mcu/s"
+      - "<gray>Konsumsi energy: <aqua>{energy} Mcu <gray>per drop"
       - ""
       - "<yellow>Pasang di tanah, lalu letakkan energy di dekatnya."
     block: "VANILLA:SCULK"
@@ -719,13 +819,18 @@ generators:
       item: "VANILLA:SCULK_CATALYST"
       name: "<gradient:#667db6:#0082c8>Cosmic Soul</gradient>"
       lore:
-        - "<dark_gray>▪ <gray>Material sihir dari <white>Cosmic Soul Generator"
-        - "<gray>Jual dengan <white>/octagens sell"
+        - "<dark_gray>▪ <gray>Material sihir hasil {name}"
+        - ""
+        - "<gray>Harga jual: <green>{sell_price} <gray>per item"
+        - "<gray>Tier generator: <white>#{tier}"
+        - "<gray>Asal: <white>{name}"
+        - ""
+        - "<yellow>Jual dengan <white>/octagens sell <yellow>atau <white>Sellwand"
       custom-model-data: 0
       glow: true
     drop-amount: 1
     sell-price: 24000
-    energy-requirement: 1600.0
+    energy-requirement: 8000
     shop-slot: 19
     effects:
       enabled: true
@@ -744,7 +849,7 @@ generators:
       - ""
       - "<gray>Drop: <white>{amount}x {drop_name} <gray>/ <white>{interval}s"
       - "<gray>Harga jual: <green>{sell_price} <gray>per item"
-      - "<gray>Butuh energy: <aqua>{energy} Mcu/s"
+      - "<gray>Konsumsi energy: <aqua>{energy} Mcu <gray>per drop"
       - ""
       - "<yellow>Pasang di tanah, lalu letakkan energy di dekatnya."
     block: "VANILLA:NETHERITE_BLOCK"
@@ -756,13 +861,18 @@ generators:
       item: "VANILLA:DRAGON_EGG"
       name: "<gradient:#ffd700:#ff00ff>Genesis Relic</gradient>"
       lore:
-        - "<dark_gray>▪ <gray>Material sihir dari <white>Genesis Relic Generator"
-        - "<gray>Jual dengan <white>/octagens sell"
+        - "<dark_gray>▪ <gray>Material sihir hasil {name}"
+        - ""
+        - "<gray>Harga jual: <green>{sell_price} <gray>per item"
+        - "<gray>Tier generator: <white>#{tier}"
+        - "<gray>Asal: <white>{name}"
+        - ""
+        - "<yellow>Jual dengan <white>/octagens sell <yellow>atau <white>Sellwand"
       custom-model-data: 0
       glow: true
     drop-amount: 1
     sell-price: 30000
-    energy-requirement: 2500.0
+    energy-requirement: 12000
     shop-slot: 20
     effects:
       enabled: true

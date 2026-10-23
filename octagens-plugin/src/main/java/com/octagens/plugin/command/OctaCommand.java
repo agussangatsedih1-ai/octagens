@@ -5,6 +5,7 @@ import com.octagens.plugin.model.EnergyType;
 import com.octagens.plugin.model.GeneratorType;
 import com.octagens.plugin.model.PlacedEnergy;
 import com.octagens.plugin.model.PlacedGenerator;
+import com.octagens.plugin.model.SellwandType;
 import com.octagens.plugin.manager.SlotManager;
 import com.octagens.plugin.util.Fmt;
 import org.bukkit.Bukkit;
@@ -50,9 +51,11 @@ public final class OctaCommand implements CommandExecutor, TabCompleter {
             case "shop" -> {
                 if (player(sender)) plugin.guis().openShop((Player) sender, 1);
             }
-            case "energyshop" -> {
+            case "magiculeshop" -> {
                 if (player(sender)) plugin.guis().openEnergyShop((Player) sender, 1);
             }
+            case "upgrade" -> upgrade(sender, args);
+            case "sellwand" -> sellwand(sender, args);
             case "sell" -> sell(sender, args);
             case "list" -> {
                 if (player(sender)) list((Player) sender);
@@ -97,7 +100,8 @@ public final class OctaCommand implements CommandExecutor, TabCompleter {
         plugin.messages().send(p, "list-header",
                 "generators", String.valueOf(plugin.generators().count(id)), "generators_max", limit(gl),
                 "energies", String.valueOf(plugin.energy().count(id)), "energy_max", limit(el),
-                "mcu", Fmt.number(plugin.energy().totalMcu(id)));
+                "mcu", Fmt.number(plugin.energy().totalMcu(id)),
+                "pool", Fmt.number(Math.floor(plugin.energy().pool(id).current)), "pool_max", Fmt.number(plugin.energy().pool(id).max));
         if (gens.isEmpty() && energies.isEmpty()) {
             plugin.messages().send(p, "list-empty");
             return;
@@ -114,6 +118,73 @@ public final class OctaCommand implements CommandExecutor, TabCompleter {
 
     private String limit(int v) {
         return v == SlotManager.UNLIMITED ? plugin.messages().get("placeholder-unlimited") : String.valueOf(v);
+    }
+
+    private void upgrade(CommandSender sender, String[] args) {
+        if (!player(sender)) return;
+        Player p = (Player) sender;
+        int n = 1;
+        if (args.length > 1) {
+            if (args[1].equalsIgnoreCase("max")) {
+                n = -1;
+            } else {
+                try {
+                    n = Integer.parseInt(args[1]);
+                } catch (NumberFormatException e) {
+                    plugin.messages().send(p, "invalid-number", "value", args[1]);
+                    return;
+                }
+                if (n < 1 || n > 100000) {
+                    plugin.messages().send(p, "invalid-number", "value", args[1]);
+                    return;
+                }
+            }
+        }
+        plugin.energy().upgrade(p, n);
+    }
+
+    private void sellwand(CommandSender sender, String[] args) {
+        if (!sender.hasPermission("octagens.admin.give")) {
+            plugin.messages().send(sender, "no-permission");
+            return;
+        }
+        if (args.length < 4 || !args[1].equalsIgnoreCase("give")) {
+            plugin.messages().send(sender, "usage-sellwand");
+            return;
+        }
+        Player target = Bukkit.getPlayerExact(args[2]);
+        if (target == null) {
+            plugin.messages().send(sender, "invalid-player", "player", args[2]);
+            return;
+        }
+        SellwandType t = plugin.registry().wand(args[3]);
+        if (t == null) {
+            plugin.messages().send(sender, "invalid-id", "id", args[3]);
+            return;
+        }
+        int amount = 1;
+        int uses = t.uses;
+        try {
+            if (args.length > 4) amount = Integer.parseInt(args[4]);
+            if (args.length > 5) uses = Integer.parseInt(args[5]) <= 0 ? -1 : Integer.parseInt(args[5]);
+        } catch (NumberFormatException e) {
+            plugin.messages().send(sender, "invalid-number", "value", args.length > 5 ? args[5] : args[4]);
+            return;
+        }
+        if (amount < 1 || amount > 64) {
+            plugin.messages().send(sender, "invalid-number", "value", String.valueOf(amount));
+            return;
+        }
+        for (int i = 0; i < amount; i++) {
+            ItemStack item = plugin.items().wandItem(t, uses, 1);
+            if (item == null) {
+                plugin.messages().send(sender, "generator-item-unavailable");
+                return;
+            }
+            plugin.items().giveOrDrop(target, item);
+        }
+        plugin.messages().send(sender, "sellwand-given", "amount", String.valueOf(amount), "id", t.id, "player", target.getName());
+        if (sender != target) plugin.messages().send(target, "sellwand-received", "amount", String.valueOf(amount), "id", t.id);
     }
 
     private void give(CommandSender sender, String[] args) {
@@ -282,8 +353,11 @@ public final class OctaCommand implements CommandExecutor, TabCompleter {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command cmd, String alias, String[] args) {
         if (args.length == 1) {
-            List<String> subs = new ArrayList<>(List.of("help", "shop", "energyshop", "sell", "list"));
-            if (sender.hasPermission("octagens.admin.give")) subs.add("give");
+            List<String> subs = new ArrayList<>(List.of("help", "shop", "magiculeshop", "upgrade", "sell", "list"));
+            if (sender.hasPermission("octagens.admin.give")) {
+                subs.add("give");
+                subs.add("sellwand");
+            }
             if (sender.hasPermission("octagens.admin.remove")) subs.add("remove");
             if (sender.hasPermission("octagens.admin.bonus")) subs.add("setbonus");
             if (sender.hasPermission("octagens.admin.reload")) subs.add("reload");
@@ -291,6 +365,16 @@ public final class OctaCommand implements CommandExecutor, TabCompleter {
         }
         String sub = args[0].toLowerCase(Locale.ROOT);
         if (sub.equals("sell") && args.length == 2) return filter(List.of("hand"), args[1]);
+        if (sub.equals("upgrade") && args.length == 2) return filter(List.of("1", "10", "100", "max"), args[1]);
+        if (sub.equals("sellwand") && sender.hasPermission("octagens.admin.give")) {
+            if (args.length == 2) return filter(List.of("give"), args[1]);
+            if (args.length == 3) return onlineNames(args[2]);
+            if (args.length == 4) {
+                List<String> ids = new ArrayList<>();
+                for (SellwandType t : plugin.registry().wands()) ids.add(t.id);
+                return filter(ids, args[3]);
+            }
+        }
         if (sub.equals("give") && sender.hasPermission("octagens.admin.give")) {
             if (args.length == 2) return onlineNames(args[1]);
             if (args.length == 3) return filter(List.of("generator", "energy"), args[2]);

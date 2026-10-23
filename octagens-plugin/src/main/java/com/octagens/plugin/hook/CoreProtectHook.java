@@ -72,6 +72,19 @@ public final class CoreProtectHook {
         }
     }
 
+    /**
+     * Logs a container transaction at the location (reflection: the method signature may differ per
+     * CoreProtect version; failures are ignored). Call after the container was modified.
+     */
+    public void logContainerTransaction(String who, Location loc) {
+        if (api == null) return;
+        try {
+            api.getClass().getMethod("logContainerTransaction", String.class, Location.class).invoke(api, who, loc);
+        } catch (Throwable t) {
+            debug(t);
+        }
+    }
+
     private void debug(Throwable t) {
         if (plugin.settings().debug) plugin.getLogger().warning("CoreProtect error: " + t);
     }

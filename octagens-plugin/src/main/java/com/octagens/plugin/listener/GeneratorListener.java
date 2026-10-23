@@ -23,6 +23,8 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.UUID;
+
 /** Placement, breaking and interaction of generator and energy blocks. */
 public final class GeneratorListener implements Listener {
     private final OctaGensPlugin plugin;
@@ -135,36 +137,37 @@ public final class GeneratorListener implements Listener {
 
     // ---------------------------------------------------------------- break
 
+    /** A plain (non-sneaking) break never removes a generator; sneaking + break is treated like a pickup. */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBreak(BlockBreakEvent e) {
         Block b = e.getBlock();
         Player p = e.getPlayer();
         PlacedGenerator g = plugin.generators().get(b);
-        if (g != null) {
-            e.setCancelled(true);
-            if (!plugin.canEdit(p, g.owner)) {
-                plugin.messages().send(p, "break-denied", "owner", g.ownerName == null ? "?" : g.ownerName);
-                return;
-            }
-            plugin.generators().pickup(p, g, true);
+        PlacedEnergy en = g == null ? plugin.energy().get(b) : null;
+        if (g == null && en == null) return;
+        e.setCancelled(true);
+        UUID owner = g != null ? g.owner : en.owner;
+        String ownerName = g != null ? g.ownerName : en.ownerName;
+        if (!plugin.canEdit(p, owner)) {
+            plugin.messages().send(p, "break-denied", "owner", ownerName == null ? "?" : ownerName);
             return;
         }
-        PlacedEnergy en = plugin.energy().get(b);
-        if (en != null) {
-            e.setCancelled(true);
-            if (!plugin.canEdit(p, en.owner)) {
-                plugin.messages().send(p, "break-denied", "owner", en.ownerName == null ? "?" : en.ownerName);
-                return;
-            }
-            plugin.energy().pickup(p, en);
+        if (!p.isSneaking()) {
+            plugin.messages().send(p, "pickup-hint");
+            if (g != null && plugin.settings().holoOnInteract) plugin.holograms().show(g);
+            return;
         }
+        if (g != null) plugin.generators().pickup(p, g, true);
+        else plugin.energy().pickup(p, en);
     }
 
     // ---------------------------------------------------------------- interact
 
-    @EventHandler(priority = EventPriority.HIGH)
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onInteract(PlayerInteractEvent e) {
-        if (e.getAction() != Action.RIGHT_CLICK_BLOCK || e.getHand() != EquipmentSlot.HAND) return;
+        if (e.getHand() != EquipmentSlot.HAND) return;
+        Action action = e.getAction();
+        if (action != Action.RIGHT_CLICK_BLOCK && action != Action.LEFT_CLICK_BLOCK) return;
         Block b = e.getClickedBlock();
         if (b == null) return;
         PlacedGenerator g = plugin.generators().get(b);
@@ -172,12 +175,12 @@ public final class GeneratorListener implements Listener {
         if (g == null && en == null) return;
 
         Player p = e.getPlayer();
-        ItemStack hand = p.getInventory().getItemInMainHand();
-        boolean handEmpty = hand.getType().isAir();
-        java.util.UUID owner = g != null ? g.owner : en.owner;
+        UUID owner = g != null ? g.owner : en.owner;
 
-        if (p.isSneaking()) {
-            if (plugin.settings().pickupRequireEmptyHand && !handEmpty) return;
+        // Sneak + left click = pickup
+        if (action == Action.LEFT_CLICK_BLOCK) {
+            if (!p.isSneaking()) return; // plain left click: BlockBreakEvent shows the hint
+            if (plugin.settings().pickupRequireEmptyHand && !p.getInventory().getItemInMainHand().getType().isAir()) return;
             e.setCancelled(true);
             if (!plugin.canEdit(p, owner)) {
                 plugin.messages().send(p, "edit-denied");
@@ -187,6 +190,11 @@ public final class GeneratorListener implements Listener {
             else plugin.energy().pickup(p, en);
             return;
         }
+
+        // Right click (without sneaking): manage GUI / info. Sneak + right click keeps vanilla placing behaviour.
+        if (p.isSneaking()) return;
+        ItemStack hand = p.getInventory().getItemInMainHand();
+        boolean handEmpty = hand.getType().isAir();
         if (!handEmpty && hand.getType().isBlock()) return; // allow building next to it
         if (g != null && plugin.settings().manageGui) {
             e.setCancelled(true);
@@ -194,11 +202,14 @@ public final class GeneratorListener implements Listener {
                 plugin.messages().send(p, "edit-denied");
                 return;
             }
+            if (plugin.settings().holoOnInteract) plugin.holograms().show(g);
             plugin.guis().openManage(p, g);
         } else if (en != null && handEmpty) {
             EnergyType t = plugin.registry().energy(en.typeId);
             plugin.messages().send(p, "energy-info", "name", t == null ? en.typeId : t.displayName,
                     "mcu", Fmt.number(en.mcu), "owner", en.ownerName == null ? "?" : en.ownerName);
+        } else if (g != null && handEmpty && plugin.settings().holoOnInteract) {
+            plugin.holograms().show(g);
         }
     }
 }

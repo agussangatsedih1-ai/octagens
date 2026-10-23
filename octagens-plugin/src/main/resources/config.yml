@@ -59,43 +59,64 @@ generators:
                                     # Bila penuh generator berhenti sementara sampai item diambil.
   require-free-space-above: true    # block di atas generator harus kosong/passable
   drop-invulnerable: true           # item drop tidak hancur oleh lava/ledakan
-  pickup-require-empty-hand: true   # sneak + klik kanan untuk pickup butuh tangan kosong
+  pickup-require-empty-hand: false  # true = pickup (jongkok + klik kiri) hanya bisa dengan tangan kosong
   manage-gui: true                  # klik kanan generator (tanpa sneak) membuka GUI manage
+                                    # PICKUP: jongkok (sneak) + KLIK KIRI pada generator/energy
   tick-interval-ticks: 10           # periode scheduler tunggal (semua generator diproses 1 task)
   full-recheck-ticks: 40            # interval cek ulang generator yang penuh
   blacklisted-worlds: []            # world yang tidak boleh dipasang generator/energy
 
 # ----------------------------------------------------------------------
-# ENERGY (Magicule, satuan Mcu/s)
-#   supply     = total Mcu/s dari energy milik owner dalam jangkauan
-#   efficiency = min(1.0, supply / energy-requirement generator)
-#   kecepatan drop = kecepatan dasar x efficiency
-# Supply TIDAK dibagi antar generator: energy bersifat aura, bukan bahan bakar.
+# ENERGY (Magicule, satuan Mcu)
+#   - Setiap pemain punya SATU pool Mcu. Energy yang dipasang meregen Mcu/s ke pool (sampai penuh).
+#   - Generator hanya drop jika ada energy milik pemain dalam radius max-distance DAN pool >= energy-requirement
+#     generator (lihat generators.yml). Tiap drop MENGONSUMSI Mcu sebesar energy-requirement.
+#   - Sebelum Mcu cukup, generator berstatus "Energy kurang" dan menunggu (progress tidak hilang).
+#   - Pool disimpan di database (autosave + saat pemain keluar) dan tetap regen walau pemain offline.
 # ----------------------------------------------------------------------
 energy:
-  required: true          # false = generator tetap jalan di kecepatan dasar tanpa energy
-  min-efficiency: 0.0     # (0.0-1.0) efficiency di bawah nilai ini = generator berhenti total
+  required: true          # false = generator drop tanpa mengonsumsi Mcu (energy dinonaktifkan)
+  max-default: 2000       # Mcu maksimum default setiap pemain
+  max-limit: 10000000     # batas MAKSIMAL Mcu maksimum (hasil upgrade tidak bisa melewati ini)
+  upgrade:                # upgrade Mcu maksimum dengan uang (GUI Magicule Shop atau /octagens upgrade)
+    step: 1000            # tiap 1 level menambah Mcu maksimum sebesar ini
+    currency: "vault"     # "vault" atau "excellenteconomy:<id>"
+    # Harga level ke-L (mulai L=0) = cost-base * (1 + L * cost-increase)
+    cost-base: 5000000
+    cost-increase: 0.25
+  autosave-seconds: 300   # interval simpan pool ke database (async)
   max-distance: 64        # radius maksimum energy -> generator (block), world harus sama
   distance-mode: "3D"     # 3D (xyz) atau 2D (abaikan Y)
-  shared-energy: false    # true = energy melayani generator pemain lain juga
+  shared-energy: false    # true = energy pemain lain di dekat generator juga dihitung sebagai "terhubung"
+                          # (pool yang dipakai tetap milik pemilik generator)
 
 # ----------------------------------------------------------------------
-# HOLOGRAM (TextDisplay di atas generator)
-# Placeholder: {name} {owner} {tier} {supply} {required} {efficiency} {status} {drop_name} {interval} {amount}
+# HOLOGRAM (TextDisplay) - hanya muncul SEJENAK lalu dihapus supaya tidak lag.
+# Muncul saat: generator dipasang, pemain klik generator, dan (opsional) saat drop bila ada pemain di dekatnya.
+# Placeholder: {name} {owner} {tier} {pool} {pool_max} {regen} {required} {efficiency} {status}
+#              {drop_name} {interval} {amount} {sell_price}
 # ----------------------------------------------------------------------
 hologram:
   enabled: true
-  height: 1.9                 # tinggi di atas dasar block
-  update-interval-ticks: 40
-  view-range: 0.6             # pengali jarak pandang (1.0 = ~64 block)
+  height: 1.9                  # tinggi di atas dasar block
+  duration-ticks: 80           # lama tampil (20 ticks = 1 detik)
+  show-on:
+    place: true
+    interact: true
+    drop: true
+  drop-nearby-radius: 8        # saat drop: tampil hanya jika ada pemain dalam radius ini
+  drop-cooldown-ticks: 100     # jeda minimum antar kemunculan akibat drop (anti spam entity)
+  view-range: 0.6              # pengali jarak pandang (1.0 = ~64 block)
   lines:
     - "{name}"
     - "<gray>Pemilik: <white>{owner}"
-    - "<gray>Mcu: <aqua>{supply}<dark_gray>/<aqua>{required} <gray>(<white>{efficiency}<gray>)"
+    - "<gray>Mcu: <aqua>{pool}<dark_gray>/<aqua>{pool_max} <dark_gray>| <gray>Butuh <aqua>{required}"
     - "{status}"
   status:
     ACTIVE: "<green>Aktif"
     NO_ENERGY: "<red>Energy kurang"
+    NO_CAPACITY: "<red>Max Mcu kurang <gray>(upgrade)"
+    NOT_CONNECTED: "<red>Tidak ada energy di dekat"
     FULL: "<yellow>Penuh - ambil dropnya"
     OWNER_OFFLINE: "<gray>Owner offline"
     UNKNOWN: "<dark_red>Tipe tidak dikenal"
@@ -143,6 +164,8 @@ sell:
 shop:
   confirm-gui: true        # true = klik item shop membuka GUI konfirmasi (guis/confirm.yml)
 
+# Sellwand (tongkat jual isi chest/container) diatur lengkap di sellwand.yml
+
 # ----------------------------------------------------------------------
 # KEAMANAN
 # ----------------------------------------------------------------------
@@ -167,7 +190,8 @@ coreprotect:
   log-placement: false
   log-removal: true            # pickup/break/remove generator & energy
   log-oregen: true             # block hasil Stone/Basalt generator (user #octagens-oregen)
-  log-transactions: true       # beli/jual dicatat sebagai baris di riwayat player
+  log-transactions: true       # beli/jual/upgrade dicatat sebagai baris di riwayat player
+  log-sellwand: true           # isi container yang dijual sellwand dicatat sebagai transaksi container
 
 # Hook opsional (false = diabaikan walau plugin-nya terpasang)
 hooks:

@@ -2,7 +2,10 @@ package com.octagens.api.event;
 
 import com.octagens.api.model.GeneratorInfo;
 
-/** Fired when the efficiency of a generator changes (energy placed/removed, config reload...). */
+/**
+ * Fired when a generator switches between having enough Mcu for a drop (efficiency 1.0) and not
+ * having enough (efficiency below 1.0). It is not fired for every small pool change.
+ */
 public final class EnergyEfficiencyChangeEvent extends OctaGensEvent {
     private final GeneratorInfo generator;
     private final double oldEfficiency;

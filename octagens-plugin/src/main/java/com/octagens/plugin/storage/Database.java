@@ -29,7 +29,7 @@ public final class Database {
     public record BlockRow(String world, int x, int y, int z, UUID owner, String ownerName, String type, long placedAt) {
     }
 
-    public record PlayerRow(UUID uuid, String name, int bonusGenerators, int bonusEnergy) {
+    public record PlayerRow(UUID uuid, String name, int bonusGenerators, int bonusEnergy, double mcuMax, double mcuCurrent) {
     }
 
     public record LoadResult(List<BlockRow> generators, List<BlockRow> energies, List<PlayerRow> players) {
@@ -87,7 +87,15 @@ public final class Database {
                     st.execute("CREATE TABLE IF NOT EXISTS octagens_generators (" + cols + ")");
                     st.execute("CREATE TABLE IF NOT EXISTS octagens_energy (" + cols + ")");
                     st.execute("CREATE TABLE IF NOT EXISTS octagens_players (uuid VARCHAR(36) NOT NULL PRIMARY KEY, "
-                            + "name VARCHAR(32), bonus_generators INT NOT NULL DEFAULT 0, bonus_energy INT NOT NULL DEFAULT 0)");
+                            + "name VARCHAR(32), bonus_generators INT NOT NULL DEFAULT 0, bonus_energy INT NOT NULL DEFAULT 0, "
+                            + "mcu_max DOUBLE NOT NULL DEFAULT 0, mcu_current DOUBLE NOT NULL DEFAULT 0)");
+                    for (String col : new String[]{"mcu_max", "mcu_current"}) {
+                        try {
+                            st.execute("ALTER TABLE octagens_players ADD COLUMN " + col + " DOUBLE NOT NULL DEFAULT 0");
+                        } catch (SQLException ignored) {
+                            // column already exists
+                        }
+                    }
                 }
             } catch (Exception e) {
                 throw new RuntimeException("Gagal membuka database: " + e.getMessage(), e);
@@ -124,10 +132,10 @@ public final class Database {
     private List<PlayerRow> readPlayers(Connection c) throws SQLException {
         List<PlayerRow> out = new ArrayList<>();
         try (Statement st = c.createStatement();
-             ResultSet rs = st.executeQuery("SELECT uuid,name,bonus_generators,bonus_energy FROM octagens_players")) {
+             ResultSet rs = st.executeQuery("SELECT uuid,name,bonus_generators,bonus_energy,mcu_max,mcu_current FROM octagens_players")) {
             while (rs.next()) {
                 try {
-                    out.add(new PlayerRow(UUID.fromString(rs.getString(1)), rs.getString(2), rs.getInt(3), rs.getInt(4)));
+                    out.add(new PlayerRow(UUID.fromString(rs.getString(1)), rs.getString(2), rs.getInt(3), rs.getInt(4), rs.getDouble(5), rs.getDouble(6)));
                 } catch (IllegalArgumentException ignored) {
                 }
             }
@@ -198,11 +206,13 @@ public final class Database {
     public void savePlayer(PlayerRow p) {
         run("save player", c -> {
             try (PreparedStatement ps = c.prepareStatement(
-                    "REPLACE INTO octagens_players (uuid,name,bonus_generators,bonus_energy) VALUES (?,?,?,?)")) {
+                    "REPLACE INTO octagens_players (uuid,name,bonus_generators,bonus_energy,mcu_max,mcu_current) VALUES (?,?,?,?,?,?)")) {
                 ps.setString(1, p.uuid().toString());
                 ps.setString(2, p.name());
                 ps.setInt(3, p.bonusGenerators());
                 ps.setInt(4, p.bonusEnergy());
+                ps.setDouble(5, p.mcuMax());
+                ps.setDouble(6, p.mcuCurrent());
                 ps.executeUpdate();
             }
         });

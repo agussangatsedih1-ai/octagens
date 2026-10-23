@@ -56,6 +56,21 @@ public final class OctaPlaceholders extends PlaceholderExpansion {
                 return String.valueOf(plugin.energy().count(id));
             case "energy_max":
                 return limit(online != null ? plugin.slots().energyLimit(online) : plugin.slots().energyLimit(id));
+            case "magicule_current_me":
+                return Fmt.number(Math.floor(plugin.energy().pool(id).current));
+            case "magicule_max_me":
+                return Fmt.number(plugin.energy().pool(id).max);
+            case "magicule_percent_me": {
+                com.octagens.plugin.model.EnergyPool pool = plugin.energy().pool(id);
+                return Fmt.percent(pool.max <= 0 ? 0 : pool.current / pool.max);
+            }
+            case "magicule_level_me":
+                return String.valueOf(plugin.energy().level(plugin.energy().pool(id)));
+            case "magicule_upgrade_price_me": {
+                com.octagens.plugin.model.EnergyPool pool = plugin.energy().pool(id);
+                if (plugin.energy().remainingLevels(pool) <= 0) return Text.strip(plugin.messages().get("upgrade-maxed"));
+                return Fmt.money(plugin.energy().upgradeCost(plugin.energy().level(pool), 1));
+            }
             case "efficiency_me":
                 return Fmt.percent(plugin.energy().averageEfficiency(id));
             default:

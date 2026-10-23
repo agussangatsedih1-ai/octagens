@@ -5,6 +5,7 @@ import com.octagens.plugin.model.EnergyRecipe;
 import com.octagens.plugin.model.EnergyType;
 import com.octagens.plugin.model.GeneratorType;
 import com.octagens.plugin.model.OreConfig;
+import com.octagens.plugin.model.SellwandType;
 import com.octagens.plugin.util.Yml;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -16,6 +17,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.HashSet;
+import java.util.Set;
+import org.bukkit.Material;
 
 /** Holds generators, energies, recipes and ore generator definitions. */
 public final class ContentRegistry {
@@ -24,6 +28,10 @@ public final class ContentRegistry {
     private Map<String, EnergyType> energies = new LinkedHashMap<>();
     private Map<String, EnergyRecipe> recipes = new LinkedHashMap<>();
     private OreConfig ore = new OreConfig();
+    private Map<String, SellwandType> wands = new LinkedHashMap<>();
+    private Set<String> wandContainers = new HashSet<>();
+    private String wandSuccessSound = "";
+    private String wandBrokenSound = "";
 
     public ContentRegistry(OctaGensPlugin plugin) {
         this.plugin = plugin;
@@ -96,8 +104,29 @@ public final class ContentRegistry {
         YamlConfiguration oy = Yml.load(plugin, "oregen.yml", false);
         ore = OreConfig.parse(oy, plugin.getLogger());
 
+        Map<String, SellwandType> w = new LinkedHashMap<>();
+        YamlConfiguration wy = Yml.load(plugin, "sellwand.yml", false);
+        ConfigurationSection wroot = wy.getConfigurationSection("wands");
+        if (wroot != null) {
+            for (String key : wroot.getKeys(false)) {
+                ConfigurationSection s = wroot.getConfigurationSection(key);
+                if (s == null) continue;
+                try {
+                    SellwandType t = SellwandType.parse(key, s);
+                    w.put(t.id, t);
+                } catch (Exception ex) {
+                    plugin.getLogger().warning("sellwand.yml: gagal memuat '" + key + "': " + ex.getMessage());
+                }
+            }
+        }
+        wands = w;
+        wandContainers = new HashSet<>();
+        for (String c : wy.getStringList("settings.containers")) wandContainers.add(c.toUpperCase(Locale.ROOT));
+        wandSuccessSound = wy.getString("settings.success-sound", "");
+        wandBrokenSound = wy.getString("settings.broken-sound", "");
+
         plugin.getLogger().info("Dimuat: " + generators.size() + " generator, " + energies.size()
-                + " energy, " + recipes.size() + " resep energy shop.");
+                + " energy, " + recipes.size() + " resep energy shop, " + wands.size() + " sellwand.");
     }
 
     public GeneratorType generator(String id) {
@@ -126,5 +155,30 @@ public final class ContentRegistry {
 
     public OreConfig ore() {
         return ore;
+    }
+
+    public SellwandType wand(String id) {
+        return id == null ? null : wands.get(id.toLowerCase(Locale.ROOT));
+    }
+
+    public List<SellwandType> wands() {
+        return Collections.unmodifiableList(new ArrayList<>(wands.values()));
+    }
+
+    /** True when the block type is listed under sellwand.yml -> settings.containers. */
+    public boolean isWandContainer(Material m) {
+        String n = m.name();
+        for (String c : wandContainers) {
+            if (n.equals(c) || (c.equals("SHULKER_BOX") && n.endsWith("SHULKER_BOX"))) return true;
+        }
+        return false;
+    }
+
+    public String wandSuccessSound() {
+        return wandSuccessSound;
+    }
+
+    public String wandBrokenSound() {
+        return wandBrokenSound;
     }
 }

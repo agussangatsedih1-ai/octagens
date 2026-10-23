@@ -141,7 +141,6 @@ public final class GeneratorManager {
     public void onChunkLoad(Chunk c) {
         List<PlacedGenerator> list = byChunk.get(ChunkKey.of(c));
         if (list == null) return;
-        List<PlacedGenerator> ok = new ArrayList<>();
         for (PlacedGenerator g : new ArrayList<>(list)) {
             if (plugin.settings().verifyBlocks && c.getWorld().getBlockAt(g.key.x(), g.key.y(), g.key.z()).getType().isAir()) {
                 plugin.getLogger().warning("Generator " + g.typeId + " milik " + g.ownerName + " di " + g.key + " tidak ada lagi di dunia; registrasi dihapus.");
@@ -149,9 +148,7 @@ public final class GeneratorManager {
                 continue;
             }
             active.add(g);
-            ok.add(g);
         }
-        plugin.holograms().ensureLater(ok);
     }
 
     public void onChunkUnload(Chunk c) {
@@ -209,36 +206,49 @@ public final class GeneratorManager {
             return;
         }
 
-        double eff = plugin.energy().efficiency(g, t);
-        if (g.lastEfficiency >= 0 && Math.abs(g.lastEfficiency - eff) > 1e-6) {
+        // The drop timer always runs; it simply waits at "ready" until the owner has enough Mcu.
+        double interval = t.dropIntervalTicks;
+        if (g.progress < interval) g.progress = Math.min(interval, g.progress + period);
+
+        EnergyManager em = plugin.energy();
+        boolean needsEnergy = s.energyRequired && t.energyRequirement > 0;
+        double eff = em.efficiency(g, t);
+        boolean powered = !needsEnergy || eff >= 1.0 - 1e-9;
+        if (g.lastEfficiency < 0) {
+            g.lastEfficiency = eff;
+            g.powered = powered;
+        } else if (powered != g.powered) {
             Bukkit.getPluginManager().callEvent(new EnergyEfficiencyChangeEvent(g, g.lastEfficiency, eff));
-        }
-        g.lastEfficiency = eff;
-        double used = s.energyRequired ? (eff >= s.minEfficiency && eff > 0 ? eff : 0) : 1.0;
-        if (used <= 0) {
-            g.status = PlacedGenerator.Status.NO_ENERGY;
-            return;
+            g.lastEfficiency = eff;
+            g.powered = powered;
         }
 
-        double interval = t.dropIntervalTicks;
-        g.progress += period * used;
+        if (!powered) {
+            if (em.supply(g) <= 0) g.status = PlacedGenerator.Status.NOT_CONNECTED;
+            else if (t.energyRequirement > em.pool(g.owner).max) g.status = PlacedGenerator.Status.NO_CAPACITY;
+            else g.status = PlacedGenerator.Status.NO_ENERGY;
+            return;
+        }
         if (g.progress < interval) {
             g.status = PlacedGenerator.Status.ACTIVE;
             return;
         }
         if (tickCounter < g.nextFullCheck) {
-            g.progress = interval;
             g.status = PlacedGenerator.Status.FULL;
             return;
         }
         if (storedAmount(g, w) >= s.maxStoredDrops) {
-            g.progress = interval;
             g.nextFullCheck = tickCounter + s.fullRecheckTicks;
             g.status = PlacedGenerator.Status.FULL;
             return;
         }
+        // Spend the Mcu only when the drop really happens (another generator of the same owner may have taken it).
+        if (needsEnergy && !em.tryConsume(g.owner, t.energyRequirement)) {
+            g.status = PlacedGenerator.Status.NO_ENERGY;
+            return;
+        }
         g.status = PlacedGenerator.Status.ACTIVE;
-        g.progress = Math.min(g.progress - interval, interval); // no catch-up bursts after lag
+        g.progress = 0;
         drop(g, t, w);
     }
 
@@ -281,6 +291,7 @@ public final class GeneratorManager {
             if (p != null && t.particleCount > 0) w.spawnParticle(p, loc.clone().add(0, 0.3, 0), t.particleCount, 0.25, 0.25, 0.25, 0.01);
             if (t.sound != null && !t.sound.isBlank()) w.playSound(loc, t.sound, t.soundVolume, t.soundPitch);
         }
+        if (plugin.settings().holoOnDrop) plugin.holograms().showOnDrop(g, w, tickCounter);
     }
 
     // ------------------------------------------------------------------ actions
@@ -291,7 +302,7 @@ public final class GeneratorManager {
         active.add(g);
         plugin.database().saveGenerator(new Database.BlockRow(g.key.world(), g.key.x(), g.key.y(), g.key.z(), g.owner, g.ownerName, g.typeId, g.placedAt));
         if (plugin.settings().cpPlacement) plugin.hooks().cp().logPlacement(p.getName(), b);
-        plugin.holograms().ensureLater(List.of(g));
+        if (plugin.settings().holoOnPlace) plugin.holograms().show(g);
         return g;
     }
 

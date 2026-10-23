@@ -26,12 +26,13 @@ items:
   energyshop:
     slot: 12
     item: "VANILLA:AMETHYST_CLUSTER"
-    name: "<gradient:#f093fb:#f5576c><bold>Energy Shop</bold></gradient>"
+    name: "<gradient:#f093fb:#f5576c><bold>Magicule Shop</bold></gradient>"
     lore:
-      - "<gray>Tukar bahan menjadi energy."
+      - "<gray>Tukar bahan menjadi energy &"
+      - "<gray>upgrade Mcu maksimum."
       - ""
       - "<yellow>Klik untuk membuka"
-    actions: ["[sound] ui.button.click", "[open:energyshop]"]
+    actions: ["[sound] ui.button.click", "[open:magiculeshop]"]
   sell:
     slot: 14
     item: "VANILLA:GOLD_INGOT"
@@ -48,7 +49,7 @@ items:
     lore:
       - "<gray>Generator: <aqua>{generators}<gray>/<aqua>{generators_max}"
       - "<gray>Energy: <aqua>{energies}<gray>/<aqua>{energy_max}"
-      - "<gray>Total Mcu/s: <aqua>%octagens_magicule_energy_me%"
+      - "<gray>Mcu: <aqua>{mcu}<dark_gray>/<aqua>{mcu_max} <dark_gray>(+<aqua>{regen}<dark_gray>/s)"
       - "<gray>Efficiency: <aqua>%octagens_efficiency_me%"
       - "<gray>Weekend bonus: <white>%octagens_weekend_active% <dark_gray>(%octagens_weekend_multiplier%)"
   close:

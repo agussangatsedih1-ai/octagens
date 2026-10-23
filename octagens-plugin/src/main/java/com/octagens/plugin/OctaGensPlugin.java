@@ -131,6 +131,7 @@ public final class OctaGensPlugin extends JavaPlugin {
 
     private void finishStartup(Database.LoadResult data) {
         slots.load(data.players());
+        energy.loadPools(data.players());
         energy.load(data.energies());
         generators.load(data.generators());
         for (World w : Bukkit.getWorlds()) {
@@ -142,12 +143,14 @@ public final class OctaGensPlugin extends JavaPlugin {
         weekend.start();
         generators.start();
         holograms.start();
+        energy.startAutosave();
 
         PluginManager pm = getServer().getPluginManager();
         pm.registerEvents(new GeneratorListener(this), this);
         pm.registerEvents(new ProtectionListener(this), this);
         pm.registerEvents(new OreGenListener(this), this);
         pm.registerEvents(new GuiListener(this), this);
+        pm.registerEvents(new com.octagens.plugin.listener.SellwandListener(this), this);
         pm.registerEvents(new PlayerListener(this), this);
         pm.registerEvents(new ChunkListener(this), this);
 
@@ -170,6 +173,10 @@ public final class OctaGensPlugin extends JavaPlugin {
         ready = false;
         OctaGensAPI.unregister();
         if (placeholders != null) placeholders.unregister();
+        if (energy != null) {
+            energy.stopAutosave();
+            energy.saveAll();
+        }
         if (generators != null) generators.stop();
         if (weekend != null) weekend.stop();
         if (holograms != null) {
@@ -193,6 +200,7 @@ public final class OctaGensPlugin extends JavaPlugin {
         weekend.reload();
         weekend.start();
         generators.start();
+        energy.startAutosave();
         holograms.reloadAll();
         slots.clearAll();
     }

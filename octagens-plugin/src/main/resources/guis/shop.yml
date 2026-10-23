@@ -17,7 +17,7 @@ entry-lore:
   - ""
   - "<gray>Harga: <gold>{price}"
   - "<gray>Drop: <white>{drop_name} <dark_gray>(jual <green>{sell_price}<dark_gray>)"
-  - "<gray>Kebutuhan energy: <aqua>{energy} Mcu/s"
+  - "<gray>Konsumsi energy: <aqua>{energy} Mcu <gray>per drop"
   - ""
   - "<gray>Status: {status}"
   - "<yellow>Klik untuk membeli"

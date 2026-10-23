@@ -1,7 +1,7 @@
 # ======================================================================
 #  OctaGens - guis/manage.yml  (kelola generator: klik kanan generator tanpa sneak)
 #  function: INFO = item info generator (name/lore dari section ini, placeholder diisi otomatis)
-#  Placeholder: {name} {owner} {tier} {supply} {required} {efficiency} {status}
+#  Placeholder: {name} {owner} {tier} {pool} {pool_max} {regen} {required} {efficiency} {status}
 #               {drop_name} {amount} {interval} {sell_price} {x} {y} {z} {world} {multiplier}
 #  Aksi internal: [pickup] mengambil generator kembali ke inventory
 # ======================================================================
@@ -23,7 +23,9 @@ items:
       - ""
       - "<gray>Drop: <white>{amount}x {drop_name} <gray>/ <white>{interval}s"
       - "<gray>Weekend bonus: <white>{multiplier}"
-      - "<gray>Energy: <aqua>{supply}<dark_gray>/<aqua>{required} Mcu/s <gray>(<white>{efficiency}<gray>)"
+      - "<gray>Mcu pemilik: <aqua>{pool}<dark_gray>/<aqua>{pool_max} <gray>(+<aqua>{regen}<gray>/s)"
+      - "<gray>Konsumsi per drop: <aqua>{required} Mcu <gray>(siap: <white>{efficiency}<gray>)"
+      - "<gray>Harga jual drop: <green>{sell_price} <gray>per item"
       - "<gray>Status: {status}"
   pickup:
     slot: 11

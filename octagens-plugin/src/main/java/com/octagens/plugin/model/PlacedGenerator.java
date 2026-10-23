@@ -10,7 +10,7 @@ import java.util.UUID;
 
 /** A generator placed in the world. Only touched from the main thread. */
 public final class PlacedGenerator implements GeneratorInfo {
-    public enum Status { ACTIVE, NO_ENERGY, FULL, OWNER_OFFLINE, UNKNOWN }
+    public enum Status { ACTIVE, NO_ENERGY, NO_CAPACITY, NOT_CONNECTED, FULL, OWNER_OFFLINE, UNKNOWN }
 
     public final UUID owner;
     public String ownerName;
@@ -20,6 +20,8 @@ public final class PlacedGenerator implements GeneratorInfo {
 
     public double progress;
     public double lastEfficiency = -1;
+    public boolean powered;
+    public long holoUntil;
     public double supply;
     public double required;
     public int supplyVersion = -1;

@@ -3,7 +3,7 @@ version: '${project.version}'
 main: com.octagens.plugin.OctaGensPlugin
 api-version: '1.21'
 authors: [OctaGens]
-description: Generator drop bertema fantasy dengan sistem energy (Mcu/s), weekend bonus, dan ore generator.
+description: Generator drop bertema fantasy dengan pool energy Magicule (Mcu), sellwand, weekend bonus, dan ore generator.
 website: https://repo.example.com/
 
 # Vault, PlaceholderAPI dan CoreProtect WAJIB. Dideklarasikan softdepend supaya
@@ -22,11 +22,14 @@ commands:
     description: Menu utama OctaGens
     aliases: [ogens, og]
     permission: octagens.use
-    usage: /<command> [shop|energyshop|sell|list|give|remove|setbonus|reload]
+    usage: /<command> [shop|magiculeshop|upgrade|sell|list|give|sellwand|remove|setbonus|reload]
 
 permissions:
   octagens.use:
     description: Memakai/menempatkan generator dan command dasar
+    default: true
+  octagens.sellwand.use:
+    description: Memakai sellwand untuk menjual isi container
     default: true
   octagens.edit:
     description: Edit/pickup/pindah generator & energy milik orang lain
@@ -38,7 +41,7 @@ permissions:
     description: Slot energy tak terbatas
     default: false
   octagens.admin.give:
-    description: /octagens give
+    description: /octagens give dan /octagens sellwand give
     default: op
   octagens.admin.remove:
     description: /octagens remove

@@ -15,19 +15,22 @@ invalid-number: "{prefix}<red>Angka tidak valid: <white>{value}"
 invalid-duration: "{prefix}<red>Durasi tidak valid: <white>{value} <gray>(contoh: 30m, 2h, 1d)"
 usage-give: "{prefix}<yellow>/octagens give <player> <generator|energy> <id> [jumlah]"
 usage-remove: "{prefix}<yellow>/octagens remove <player> <generators|energy|all> [id]"
+usage-sellwand: "{prefix}<yellow>/octagens sellwand give <player> <wand_id> [jumlah] [uses]"
 usage-setbonus: "{prefix}<yellow>/octagens setbonus <multiplier|off> [durasi]"
 
 help:
   - "{prefix}<white>Perintah OctaGens:"
   - " <aqua>/octagens <gray>- menu utama"
   - " <aqua>/octagens shop <gray>- toko generator"
-  - " <aqua>/octagens energyshop <gray>- toko energy"
+  - " <aqua>/octagens magiculeshop <gray>- toko energy & upgrade Mcu maksimum"
+  - " <aqua>/octagens upgrade [jumlah|max] <gray>- upgrade Mcu maksimum"
   - " <aqua>/octagens sell [hand] <gray>- jual drop"
   - " <aqua>/octagens list <gray>- generator & energy milikmu"
 help-admin:
   - " <gold>/octagens give <player> <generator|energy> <id> [jumlah]"
   - " <gold>/octagens remove <player> <generators|energy|all> [id]"
   - " <gold>/octagens setbonus <multiplier|off> [durasi]"
+  - " <gold>/octagens sellwand give <player> <wand> [jumlah] [uses]"
   - " <gold>/octagens reload"
 
 # --- penempatan ---
@@ -37,7 +40,7 @@ generator-no-space: "{prefix}<red>Ruang di atas generator harus kosong."
 generator-unknown-type: "{prefix}<red>Tipe generator ini sudah tidak ada di config. Hubungi admin."
 generator-item-unavailable: "{prefix}<red>Item generator ini tidak tersedia (hook/item hilang). Hubungi admin."
 generator-pickup: "{prefix}<green>Generator {name} <green>diambil."
-energy-placed: "{prefix}<green>Energy {name} <green>terpasang <gray>(+{mcu} Mcu/s)."
+energy-placed: "{prefix}<green>Energy {name} <green>terpasang <gray>(+{mcu} Mcu/s regen)."
 energy-slot-full: "{prefix}<red>Slot energy penuh <gray>(maks {max})."
 energy-unknown-type: "{prefix}<red>Tipe energy ini sudah tidak ada di config. Hubungi admin."
 energy-pickup: "{prefix}<green>Energy {name} <green>diambil."
@@ -45,6 +48,8 @@ energy-info: "{prefix}{name} <gray>- <aqua>{mcu} Mcu/s <gray>(milik <white>{owne
 place-world-blocked: "{prefix}<red>Generator dan energy tidak boleh dipasang di dunia ini."
 break-denied: "{prefix}<red>Ini milik <white>{owner}<red>."
 edit-denied: "{prefix}<red>Kamu tidak boleh mengubah ini."
+
+pickup-hint: "{prefix}<gray>Untuk mengambil: <white>jongkok (sneak) + klik kiri <gray>pada block ini."
 
 # --- shop ---
 status-buyable: "<green>Bisa dibeli"
@@ -80,6 +85,25 @@ sell-failed: "{prefix}<red>Gagal membayar, item tidak diambil."
 sell-gui-line: "<gray>- <white>{amount}x {name} <dark_gray>= <green>{money}"
 sell-gui-empty: "<red>Tidak ada drop untuk dijual"
 
+# --- sellwand ---
+sellwand-success: "{prefix}<green>Sellwand menjual <white>{amount} <green>item seharga <white>{total}<green>."
+sellwand-uses: "{prefix}<gray>Sisa pemakaian sellwand: <white>{uses}"
+sellwand-empty: "{prefix}<red>Tidak ada drop OctaGens di container ini."
+sellwand-cooldown: "{prefix}<red>Sellwand cooldown, tunggu {seconds} detik."
+sellwand-broken: "{prefix}<red>Sellwand-mu sudah habis dan hancur."
+sellwand-no-access: "{prefix}<red>Kamu tidak punya akses ke container ini."
+sellwand-invalid-container: "{prefix}<red>Sellwand tidak bisa dipakai pada block ini."
+sellwand-unknown: "{prefix}<red>Tipe sellwand ini sudah tidak ada di sellwand.yml."
+sellwand-given: "{prefix}<green>Memberi <white>{amount}x sellwand {id} <green>ke <white>{player}<green>."
+sellwand-received: "{prefix}<green>Kamu menerima <white>{amount}x sellwand {id}<green>."
+
+# --- upgrade Mcu maksimum ---
+upgrade-success: "{prefix}<green>Mcu maksimum naik <white>+{levels} level <green>menjadi <aqua>{max} Mcu <green>(biaya <white>{price}<green>)."
+upgrade-not-enough-money: "{prefix}<red>Saldo kurang untuk upgrade. Harga: <white>{price}"
+upgrade-max-reached: "{prefix}<gold>Mcu maksimummu sudah mencapai batas <white>{limit}<gold>."
+upgrade-unavailable: "{prefix}<red>Currency upgrade tidak tersedia."
+upgrade-maxed: "<gold>MAKS"
+
 # --- weekend ---
 weekend-start:
   - "{prefix}<gold><bold>WEEKEND BONUS DIMULAI!</bold> <yellow>Drop generator x<white>{multiplier}"
@@ -94,7 +118,9 @@ bonus-cleared: "{prefix}<green>Event bonus manual dihentikan."
 give-success: "{prefix}<green>Memberi <white>{amount}x {name} <green>ke <white>{player}<green>."
 give-received: "{prefix}<green>Kamu menerima <white>{amount}x {name}<green>."
 remove-success: "{prefix}<green>Menghapus <white>{generators} <green>generator dan <white>{energies} <green>energy milik <white>{player}<green>."
-list-header: "{prefix}<white>Generator <aqua>{generators}<gray>/<aqua>{generators_max} <dark_gray>| <white>Energy <aqua>{energies}<gray>/<aqua>{energy_max} <dark_gray>| <white>Total <aqua>{mcu} Mcu/s"
+list-header:
+  - "{prefix}<white>Generator <aqua>{generators}<gray>/<aqua>{generators_max} <dark_gray>| <white>Energy <aqua>{energies}<gray>/<aqua>{energy_max}"
+  - "{prefix}<white>Mcu <aqua>{pool}<gray>/<aqua>{pool_max} <dark_gray>| <white>Regen <aqua>{mcu} Mcu/s"
 list-empty: "{prefix}<gray>Kamu belum memasang generator atau energy."
 list-generator-line: " <dark_gray>• {name} <gray>x<white>{count}"
 list-energy-line: " <dark_gray>• {name} <gray>x<white>{count}"

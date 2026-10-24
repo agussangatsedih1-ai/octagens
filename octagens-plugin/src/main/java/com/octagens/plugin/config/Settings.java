@@ -70,6 +70,8 @@ public final class Settings {
     public boolean hookMmo, hookIa, hookEe, hookAx, axOwnerOnly, axReadMultiplier;
     public String axPriority;
     public java.util.Set<String> axContainers = new HashSet<>();
+    public java.util.Set<String> axWandNamespaces = new HashSet<>();
+    public List<String> axWandText = new ArrayList<>();
     public boolean verifyBlocks;
 
     public Settings(OctaGensPlugin plugin) {
@@ -179,6 +181,10 @@ public final class Settings {
         axPriority = c.getString("hooks.axsellwands.priority", "LOW");
         axOwnerOnly = c.getBoolean("hooks.axsellwands.owner-only", true);
         axReadMultiplier = c.getBoolean("hooks.axsellwands.read-multiplier", true);
+        axWandNamespaces = new HashSet<>();
+        for (String x : c.getStringList("hooks.axsellwands.wand-pdc-namespaces")) axWandNamespaces.add(x.toLowerCase(Locale.ROOT));
+        axWandText = new ArrayList<>();
+        for (String x : c.getStringList("hooks.axsellwands.wand-text-contains")) axWandText.add(x.toLowerCase(Locale.ROOT));
         axContainers = new HashSet<>();
         for (String x : c.getStringList("hooks.axsellwands.containers")) axContainers.add(x.toUpperCase(Locale.ROOT));
         verifyBlocks = c.getBoolean("performance.verify-blocks", true);

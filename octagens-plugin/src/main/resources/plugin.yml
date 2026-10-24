@@ -2,8 +2,8 @@ name: OctaGens
 version: '${project.version}'
 main: com.octagens.plugin.OctaGensPlugin
 api-version: '1.21'
-authors: [OctaGens]
-description: Generator drop bertema fantasy dengan pool energy Magicule (Mcu), hook AxSellwands, weekend bonus, dan ore generator.
+authors: [OctaNexus-Team]
+description: Free simple Gens Plugin for Minecraft.
 website: https://repo.example.com/
 
 # Vault, PlaceholderAPI dan CoreProtect WAJIB. Dideklarasikan softdepend supaya

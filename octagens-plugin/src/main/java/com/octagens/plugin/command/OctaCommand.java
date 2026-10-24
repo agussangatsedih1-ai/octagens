@@ -54,6 +54,7 @@ public final class OctaCommand implements CommandExecutor, TabCompleter {
                 if (player(sender)) plugin.guis().openEnergyShop((Player) sender, 1);
             }
             case "upgrade" -> upgrade(sender, args);
+            case "axdebug" -> axDebug(sender);
             case "sell" -> sell(sender, args);
             case "list" -> {
                 if (player(sender)) list((Player) sender);
@@ -116,6 +117,20 @@ public final class OctaCommand implements CommandExecutor, TabCompleter {
 
     private String limit(int v) {
         return v == SlotManager.UNLIMITED ? plugin.messages().get("placeholder-unlimited") : String.valueOf(v);
+    }
+
+    private void axDebug(CommandSender sender) {
+        if (!sender.hasPermission("octagens.admin.reload")) {
+            plugin.messages().send(sender, "no-permission");
+            return;
+        }
+        if (!player(sender)) return;
+        if (plugin.hooks().ax() == null) {
+            sender.sendMessage("\u00a7cHook AxSellwands tidak aktif: plugin AxSellwands tidak terpasang / hooks.axsellwands.enabled = false.");
+            return;
+        }
+        sender.sendMessage("\u00a7d--- OctaGens AxSellwands debug ---");
+        for (String line : plugin.hooks().ax().diagnose((Player) sender)) sender.sendMessage("\u00a77" + line);
     }
 
     private void upgrade(CommandSender sender, String[] args) {
@@ -311,7 +326,10 @@ public final class OctaCommand implements CommandExecutor, TabCompleter {
             if (sender.hasPermission("octagens.admin.give")) subs.add("give");
             if (sender.hasPermission("octagens.admin.remove")) subs.add("remove");
             if (sender.hasPermission("octagens.admin.bonus")) subs.add("setbonus");
-            if (sender.hasPermission("octagens.admin.reload")) subs.add("reload");
+            if (sender.hasPermission("octagens.admin.reload")) {
+                subs.add("reload");
+                subs.add("axdebug");
+            }
             return filter(subs, args[0]);
         }
         String sub = args[0].toLowerCase(Locale.ROOT);

@@ -13,6 +13,7 @@ import org.bukkit.Particle;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.Waterlogged;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockFromToEvent;
 
@@ -78,11 +79,28 @@ public final class OreGenManager {
                 if (to.getRelative(f).getType() == Material.BLUE_ICE) return OreGeneratorType.BASALT;
             }
         }
-        Material mirror = flowing == Material.WATER ? Material.LAVA : Material.WATER;
         for (BlockFace f : FACES) {
-            if (to.getRelative(f).getType() == mirror) return OreGeneratorType.STONE;
+            Block n = to.getRelative(f);
+            boolean match = flowing == Material.WATER ? n.getType() == Material.LAVA : holdsWater(n);
+            if (match) return OreGeneratorType.STONE;
         }
         return null;
+    }
+
+    /**
+     * True for water, waterlogged blocks (slabs, stairs, fences, trapdoors...) and blocks that always contain
+     * water (kelp, seagrass, bubble column). Vanilla treats all of these as water for cobblestone generation.
+     */
+    private static boolean holdsWater(Block b) {
+        Material m = b.getType();
+        if (m == Material.WATER) return true;
+        switch (m) {
+            case KELP, KELP_PLANT, SEAGRASS, TALL_SEAGRASS, BUBBLE_COLUMN:
+                return true;
+            default:
+                break;
+        }
+        return b.getBlockData() instanceof Waterlogged wl && wl.isWaterlogged();
     }
 
     private Player nearestPlayer(Block b, double radius) {

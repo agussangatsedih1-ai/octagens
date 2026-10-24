@@ -22,11 +22,17 @@ Terinspirasi konsep AxGens, tetapi seluruh kode, mekanik, dan API ditulis dari n
 - **Hologram** TextDisplay yang hanya muncul **sejenak** lalu dihapus supaya tidak lag: info saat dipasang/diklik, teks **"Drop!"** saat generator drop, dan `+X Mcu` di tiap Magicule Power Collector.
 - **Storage** SQLite (default) / MySQL-MariaDB (HikariCP), semua I/O async.
 
+## Changelog
+**1.0.3-BETA**
+- Stone Generator kini juga aktif saat lava bertemu block *waterlogged* (slab, stairs, pagar, trapdoor, dll) serta kelp/seagrass, sama seperti vanilla.
+- Hook AxSellwands: deteksi wand bisa diatur (`wand-pdc-namespaces`, `wand-text-contains`) dan ada `/octagens axdebug` untuk diagnosis (key PDC item, isi container, drop bertag pemilik).
+- Catatan: integrasi resmi lewat AxIntegrations (`ShopIntegration`) belum ada; hook saat ini bekerja lewat event interact.
+
 ## Instalasi
 1. Pasang **Vault** (+ plugin economy), **PlaceholderAPI**, dan **CoreProtect** (wajib).
    Bila salah satu tidak ada, OctaGens mematikan dirinya dan menulis pesan jelas di console.
 2. Opsional: MMOItems, ItemsAdder, ExcellentEconomy, **AxSellwands** (untuk sellwand).
-3. Taruh `OctaGens-1.0.2-BETA.jar` di folder `plugins/`, start server.
+3. Taruh `OctaGens-1.0.3-BETA.jar` di folder `plugins/`, start server.
    Pada start pertama server mengunduh library (HikariCP, sqlite-jdbc, mariadb-jdbc, slf4j) dari Maven Central lewat `libraries:` di `plugin.yml`, jadi server perlu akses internet saat itu.
 4. **Ganti `head-texture` di `energy.yml`**: nilai bawaan adalah placeholder (skin tidak nyata). Ambil texture base64 (field "Value") dari minecraft-heads.com, cari head bertema *core* untuk Magicule Power Collector.
 5. Edit config sesuai kebutuhan lalu `/octagens reload`.
@@ -51,6 +57,7 @@ Format currency: `vault` atau `excellenteconomy:<currency_id>`.
 | `/octagens give <player> <generator\|energy> <id> [jumlah]` | Beri item | `octagens.admin.give` |
 | `/octagens remove <player> <generators\|energy\|all> [id]` | Hapus milik pemain | `octagens.admin.remove` |
 | `/octagens setbonus <multiplier\|off> [durasi]` | Event bonus manual | `octagens.admin.bonus` |
+| `/octagens axdebug` | Diagnosis hook AxSellwands (pegang wand, lihat chest) | `octagens.admin.reload` |
 | `/octagens reload` | Reload semua config (progres tampil di console) | `octagens.admin.reload` |
 
 Klik kanan generator = GUI manage (info, **upgrade generator**, ambil generator). Pickup cepat: **jongkok (sneak) + klik kiri** pada generator/collector.
@@ -81,7 +88,7 @@ Klik kanan generator = GUI manage (info, **upgrade generator**, ambil generator)
 <dependency>
     <groupId>com.octagens</groupId>
     <artifactId>OctaGensAPI</artifactId>
-    <version>1.0.2-BETA</version>
+    <version>1.0.3-BETA</version>
     <scope>provided</scope>
 </dependency>
 ```
@@ -102,5 +109,5 @@ Event: `GeneratorPlace/Break/Pickup/Drop/Purchase/UpgradeEvent`, `EnergyPlace/Br
 ```
 mvn clean package
 ```
-Hasil: `octagens-plugin/target/OctaGens-1.0.2-BETA.jar` (API ikut di-shade ke dalam jar plugin).
+Hasil: `octagens-plugin/target/OctaGens-1.0.3-BETA.jar` (API ikut di-shade ke dalam jar plugin).
 Untuk publish API saja: `mvn -pl octagens-api deploy`.

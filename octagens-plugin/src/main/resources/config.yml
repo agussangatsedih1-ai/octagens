@@ -230,6 +230,10 @@ hooks:
     owner-only: true
     read-multiplier: true     # coba baca multiplier dari item wand AxSellwands (best-effort), dikali harga
     containers: [CHEST, TRAPPED_CHEST, BARREL, SHULKER_BOX, HOPPER, DROPPER, DISPENSER]
+    # Cara mengenali item wand AxSellwands (salah satu cukup):
+    wand-pdc-namespaces: [axsellwands]   # item punya key PDC dengan namespace ini
+    wand-text-contains: []               # atau nama/lore item memuat teks ini, mis. ["sellwand"]
+    # Tidak terdeteksi? Pegang wand, arahkan ke chest, jalankan /octagens axdebug untuk melihat key PDC item.
 
 performance:
   verify-blocks: true          # hapus registrasi bila block generator/energy hilang (WorldEdit dll)

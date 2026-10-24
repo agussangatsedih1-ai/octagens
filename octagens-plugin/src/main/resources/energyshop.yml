@@ -1,0 +1,82 @@
+# ======================================================================
+#  OctaGens - energyshop.yml
+#  Key resep = id energy di energy.yml.
+#    price        harga uang (0 = tanpa uang, hanya bahan)
+#    currency     "vault" atau "excellenteconomy:<id>"
+#    ingredients  daftar bahan "<jumlah>x <ref>":
+#        VANILLA:MATERIAL            item vanilla polos (tanpa nama/lore/model data)
+#        ENERGY:<id>                 item energy OctaGens (dikenali lewat PDC)
+#        MMOITEMS:TYPE:ID            item MMOItems (resep ditandai "Tidak tersedia" bila MMOItems tidak ada)
+#        ITEMSADDER:namespace:id     item ItemsAdder
+#  Pembelian ATOMIK: semua bahan dan uang dicek dulu; bila gagal tidak ada yang diambil.
+# ======================================================================
+recipes:
+
+  glimmer_dust:
+    price: 5000
+    currency: "vault"
+    ingredients:
+      - "64x VANILLA:LAPIS_BLOCK"
+
+  fey_spark:
+    price: 10000
+    currency: "vault"
+    ingredients:
+      - "4x ENERGY:glimmer_dust"
+      - "128x VANILLA:LAPIS_BLOCK"
+
+  lumina_essence:
+    price: 150000
+    currency: "vault"
+    ingredients:
+      - "4x ENERGY:fey_spark"
+      - "128x VANILLA:GOLD_BLOCK"
+
+  hexa_flux:
+    price: 50000
+    currency: "vault"
+    ingredients:
+      - "4x ENERGY:lumina_essence"
+      - "256x VANILLA:GOLD_BLOCK"
+
+  wispfire:
+    price: 120000
+    currency: "vault"
+    ingredients:
+      - "4x ENERGY:hexa_flux"
+      - "256x VANILLA:DIAMOND_BLOCK"
+
+  ethereal_ichor:
+    price: 250000
+    currency: "vault"
+    ingredients:
+      - "4x ENERGY:wispfire"
+      - "256x VANILLA:DIAMOND_BLOCK"
+
+  astralite:
+    price: 500000
+    currency: "vault"
+    ingredients:
+      - "4x ENERGY:ethereal_ichor"
+      - "512x VANILLA:DIAMOND_BLOCK"
+
+  spectral_charge:
+    price: 0
+    currency: "vault"
+    ingredients:
+      - "4x ENERGY:astralite"
+      - "64x MMOITEMS:MATERIAL:POLISHED_DIAMOND_BLOCK"
+
+  celestium:
+    price: 0
+    currency: "vault"
+    ingredients:
+      - "4x ENERGY:astralite"
+      - "128x MMOITEMS:MATERIAL:POLISHED_DIAMOND_BLOCK"
+
+  origin_pulse:
+    price: 0
+    currency: "vault"
+    ingredients:
+      - "4x ENERGY:celestium"
+      - "256x MMOITEMS:MATERIAL:POLISHED_DIAMOND_BLOCK"

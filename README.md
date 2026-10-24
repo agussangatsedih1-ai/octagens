@@ -13,25 +13,27 @@ Terinspirasi konsep AxGens, tetapi seluruh kode, mekanik, dan API ditulis dari n
   - Generator juga butuh minimal satu energy milik pemilik dalam radius `energy.max-distance` (default 64).
   - **Upgrade Mcu maksimum** dengan uang (Magicule Shop atau `/octagens upgrade`), batas tertinggi **10.000.000 Mcu**, semua angka di config.
 - **Sell**: `/octagens sell`, `/octagens sell hand`, opsi GUI konfirmasi, multiplier via permission, log console + `sell-log.txt`.
-- **Sellwand**: tongkat untuk menjual drop OctaGens di dalam chest/barrel/shulker/hopper (klik kanan container). Pemakaian terbatas/tak terbatas, multiplier dan cooldown per tipe (`sellwand.yml`). Menghormati plugin proteksi dan dicatat ke CoreProtect.
+- **Hook AxSellwands**: OctaGens tidak punya sellwand sendiri. Bila plugin **AxSellwands** terpasang, klik kanan container dengan wand AxSellwands akan menjual drop OctaGens di dalamnya dengan harga OctaGens (sisanya diproses AxSellwands). Lihat `hooks.axsellwands` di `config.yml`.
+- **Upgrade generator**: klik kanan generator membuka GUI manage dengan ikon upgrade ke tier berikutnya (harga = harga shop tier berikutnya).
+- **Magicule Power Collector**: nama item memuat regen Mcu/s, hologram `+X Mcu` muncul sejenak tiap beberapa detik selagi meregen.
 - **Generator Shop & Magicule Shop** berpaginasi, pembelian energy **atomik**.
 - **Weekend Bonus** drop 2x–4x (acuan UTC, tampil WIB), boss bar/action bar, broadcast, event bonus manual.
 - **Stone Generator & Basalt Generator**, **slot limit** via permission, **GUI custom** YAML, **keamanan** (anti dupe GUI, rate limit, proteksi piston/ledakan/dispenser/fluid, CoreProtect).
-- **Hologram** TextDisplay yang hanya muncul **sejenak** (saat dipasang, diklik, atau drop dengan pemain di dekatnya) lalu dihapus supaya tidak lag.
+- **Hologram** TextDisplay yang hanya muncul **sejenak** lalu dihapus supaya tidak lag: info saat dipasang/diklik, teks **"Drop!"** saat generator drop, dan `+X Mcu` di tiap Magicule Power Collector.
 - **Storage** SQLite (default) / MySQL-MariaDB (HikariCP), semua I/O async.
 
 ## Instalasi
 1. Pasang **Vault** (+ plugin economy), **PlaceholderAPI**, dan **CoreProtect** (wajib).
    Bila salah satu tidak ada, OctaGens mematikan dirinya dan menulis pesan jelas di console.
-2. Opsional: MMOItems, ItemsAdder, ExcellentEconomy.
-3. Taruh `OctaGens-1.0.0.jar` di folder `plugins/`, start server.
+2. Opsional: MMOItems, ItemsAdder, ExcellentEconomy, **AxSellwands** (untuk sellwand).
+3. Taruh `OctaGens-1.0.2-BETA.jar` di folder `plugins/`, start server.
    Pada start pertama server mengunduh library (HikariCP, sqlite-jdbc, mariadb-jdbc, slf4j) dari Maven Central lewat `libraries:` di `plugin.yml`, jadi server perlu akses internet saat itu.
-4. **Ganti `head-texture` di `energy.yml`**: nilai bawaan adalah placeholder (skin tidak nyata). Ambil texture base64 dari mis. minecraft-heads.com.
+4. **Ganti `head-texture` di `energy.yml`**: nilai bawaan adalah placeholder (skin tidak nyata). Ambil texture base64 (field "Value") dari minecraft-heads.com, cari head bertema *core* untuk Magicule Power Collector.
 5. Edit config sesuai kebutuhan lalu `/octagens reload`.
 
 ## Struktur config (`plugins/OctaGens/`)
 ```
-config.yml  generators.yml  energy.yml  energyshop.yml  oregen.yml  sellwand.yml  messages.yml
+config.yml  generators.yml  energy.yml  energyshop.yml  oregen.yml  messages.yml
 guis/ main.yml shop.yml energyshop.yml (= Magicule Shop) confirm.yml manage.yml sell.yml
 ```
 Format item: `VANILLA:MATERIAL`, `MMOITEMS:TYPE:ID`, `ITEMSADDER:namespace:id`, `HEAD:<base64>`.
@@ -47,12 +49,11 @@ Format currency: `vault` atau `excellenteconomy:<currency_id>`.
 | `/octagens sell [hand]` | Jual drop | `octagens.use` |
 | `/octagens list` | Generator & energy milikku | `octagens.use` |
 | `/octagens give <player> <generator\|energy> <id> [jumlah]` | Beri item | `octagens.admin.give` |
-| `/octagens sellwand give <player> <wand> [jumlah] [uses]` | Beri sellwand | `octagens.admin.give` |
 | `/octagens remove <player> <generators\|energy\|all> [id]` | Hapus milik pemain | `octagens.admin.remove` |
 | `/octagens setbonus <multiplier\|off> [durasi]` | Event bonus manual | `octagens.admin.bonus` |
-| `/octagens reload` | Reload semua config | `octagens.admin.reload` |
+| `/octagens reload` | Reload semua config (progres tampil di console) | `octagens.admin.reload` |
 
-Pickup generator/energy: **jongkok (sneak) + klik kiri** pada block, atau tombol di GUI manage (klik kanan generator).
+Klik kanan generator = GUI manage (info, **upgrade generator**, ambil generator). Pickup cepat: **jongkok (sneak) + klik kiri** pada generator/collector.
 
 ## Permission
 | Permission | Default | Fungsi |
@@ -62,7 +63,6 @@ Pickup generator/energy: **jongkok (sneak) + klik kiri** pada block, atau tombol
 | `octagens.generatorslot.<n>` / `.*` | false | Batas slot generator (tertinggi dipakai) / tak terbatas |
 | `octagens.energyslot.<n>` / `.*` | false | Batas slot energy / tak terbatas |
 | `octagens.sellmultiplier.<x>` | false | Multiplier jual (mis. `1.5`) |
-| `octagens.sellwand.use` | true | Memakai sellwand |
 | `octagens.oregen.bonus.*` | false | Contoh permission bonus ore generator (diatur di `oregen.yml`) |
 | `octagens.admin.*` | op | Semua admin (edit, give, remove, bonus, reload, bypass slot) |
 
@@ -81,7 +81,7 @@ Pickup generator/energy: **jongkok (sneak) + klik kiri** pada block, atau tombol
 <dependency>
     <groupId>com.octagens</groupId>
     <artifactId>OctaGensAPI</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.2-BETA</version>
     <scope>provided</scope>
 </dependency>
 ```
@@ -95,12 +95,12 @@ double mcu = api.getMcuCurrent(player.getUniqueId());
 @EventHandler
 public void onDrop(GeneratorDropEvent e) { e.setMultiplier(e.getMultiplier() * 2); }
 ```
-Event: `GeneratorPlace/Break/Pickup/Drop/PurchaseEvent`, `EnergyPlace/Break/Purchase/EfficiencyChangeEvent` (hanya saat generator berganti antara cukup/kurang Mcu), `McuMaxUpgradeEvent`,
+Event: `GeneratorPlace/Break/Pickup/Drop/Purchase/UpgradeEvent`, `EnergyPlace/Break/Purchase/EfficiencyChangeEvent` (hanya saat generator berganti antara cukup/kurang Mcu), `McuMaxUpgradeEvent`,
 `DropSellEvent`, `WeekendBonusStart/EndEvent`, `OreGeneratorFormEvent`.
 
 ## Build
 ```
 mvn clean package
 ```
-Hasil: `octagens-plugin/target/OctaGens-1.0.0.jar` (API ikut di-shade ke dalam jar plugin).
+Hasil: `octagens-plugin/target/OctaGens-1.0.2-BETA.jar` (API ikut di-shade ke dalam jar plugin).
 Untuk publish API saja: `mvn -pl octagens-api deploy`.

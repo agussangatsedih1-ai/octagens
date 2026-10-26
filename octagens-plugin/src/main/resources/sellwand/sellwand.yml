@@ -1,0 +1,75 @@
+# ======================================================================
+#  OctaGens - sellwand/sellwand.yml
+#  Sellwand = tongkat untuk MENJUAL drop yang tergeletak di sekitar sebuah GENERATOR.
+#  Cara pakai: pegang sellwand lalu KLIK KANAN GENERATOR (hanya generator, block lain ditolak).
+#  Uang masuk ke pemegang sellwand. Pemilik generator atau pemain dengan octagens.edit yang boleh memakainya.
+#
+#  Berikan dengan:  /octagens sellwand give <player> <wand_id> [jumlah] [uses] [multiplier]
+#    - uses       : jumlah pemakaian; 0 atau -1 = tak terbatas
+#    - multiplier : pengali harga jual, TANPA batas atas dan boleh desimal (mis. 1.5, 2.25, 100000)
+#  Permission pakai: octagens.sellwand.use (default: semua pemain)
+#
+#  Field wand:
+#    item                ref item: VANILLA:X | MMOITEMS:TYPE:ID | ITEMSADDER:ns:id | HEAD:<base64>
+#    symbol              simbol kustom, dipakai lewat placeholder {symbol} di name/lore (Unicode apa pun)
+#    name, lore          hex color (&#RRGGBB / <#RRGGBB>), gradient, MiniMessage didukung
+#                        placeholder: {symbol} {id} {uses} {multiplier} {cooldown}   ({uses} = "∞" bila tak terbatas)
+#    custom-model-data   angka model resource pack (nama + model texture kustom)
+#    item-model          model component 1.21.2+ (mis. "mypack:sellwand_gold")
+#    glow                efek berkilau
+#    uses                pemakaian default (-1 = tak terbatas)
+#    multiplier          multiplier default (decimal boleh, tanpa batas)
+#    cooldown-ms         jeda antar pemakaian
+# ======================================================================
+wands:
+  basic:
+    item: "VANILLA:BLAZE_ROD"
+    symbol: "✦"
+    name: "{symbol} <gradient:#f7971e:#ffd200><bold>Sellwand</bold></gradient> <dark_gray>[<white>Basic<dark_gray>]"
+    lore:
+      - "{lang:lore-wand-1}"
+      - ""
+      - "{lang:lore-wand-uses}"
+      - "{lang:lore-wand-multiplier}"
+      - "{lang:lore-wand-cooldown}"
+      - ""
+      - "{lang:lore-wand-use}"
+    custom-model-data: 0
+    glow: true
+    uses: 50
+    multiplier: 1.0
+    cooldown-ms: 1500
+  advanced:
+    item: "VANILLA:END_ROD"
+    symbol: "❖"
+    name: "{symbol} <gradient:#4facfe:#00f2fe><bold>Sellwand</bold></gradient> <dark_gray>[<aqua>Advanced<dark_gray>]"
+    lore:
+      - "{lang:lore-wand-1}"
+      - ""
+      - "{lang:lore-wand-uses}"
+      - "{lang:lore-wand-multiplier}"
+      - "{lang:lore-wand-cooldown}"
+      - ""
+      - "{lang:lore-wand-use}"
+    custom-model-data: 0
+    glow: true
+    uses: 250
+    multiplier: 1.25
+    cooldown-ms: 1000
+  master:
+    item: "VANILLA:LIGHTNING_ROD"
+    symbol: "♛"
+    name: "{symbol} <gradient:#f093fb:#f5576c><bold>Sellwand</bold></gradient> <dark_gray>[<light_purple>Master<dark_gray>]"
+    lore:
+      - "{lang:lore-wand-1}"
+      - ""
+      - "{lang:lore-wand-uses}"
+      - "{lang:lore-wand-multiplier}"
+      - "{lang:lore-wand-cooldown}"
+      - ""
+      - "{lang:lore-wand-use}"
+    custom-model-data: 0
+    glow: true
+    uses: -1
+    multiplier: 2.5
+    cooldown-ms: 500

@@ -3,6 +3,7 @@ package com.octagens.plugin.item;
 import com.octagens.plugin.OctaGensPlugin;
 import com.octagens.plugin.model.EnergyType;
 import com.octagens.plugin.model.GeneratorType;
+import com.octagens.plugin.model.SellwandType;
 import com.octagens.plugin.hook.Currency;
 import com.octagens.plugin.util.Fmt;
 import com.octagens.plugin.util.Keys;
@@ -69,7 +70,7 @@ public final class ItemService {
 
     /** Applies {placeholders} then PlaceholderAPI (when a player is given). */
     public String fill(String s, Map<String, String> repl, OfflinePlayer papi) {
-        String out = Text.replace(s == null ? "" : s, repl);
+        String out = Text.replace(plugin.messages().resolveLang(s == null ? "" : s), repl);
         if (papi != null) out = PlaceholderAPI.setPlaceholders(papi, out);
         return out;
     }
@@ -205,25 +206,48 @@ public final class ItemService {
         }
     }
 
-    public ItemStack head(String texture) {
-        ItemStack it = new ItemStack(Material.PLAYER_HEAD);
+    private static final Pattern TEXTURE_HOST = Pattern.compile("^https?://textures\\.minecraft\\.net/texture/[0-9a-fA-F]{20,}$");
+
+    /** True when the value is a base64 texture (or URL) pointing at textures.minecraft.net/texture/<hash>. */
+    public static boolean validTexture(String texture) {
         String url = textureUrl(texture);
-        if (url == null) return it;
-        ItemMeta meta = it.getItemMeta();
-        if (meta instanceof SkullMeta sm) {
-            try {
-                PlayerProfile profile = Bukkit.createPlayerProfile(
-                        UUID.nameUUIDFromBytes(texture.getBytes(StandardCharsets.UTF_8)), "OctaGens");
-                PlayerTextures tex = profile.getTextures();
-                tex.setSkin(java.net.URI.create(url).toURL());
-                profile.setTextures(tex);
-                sm.setOwnerProfile(profile);
-                it.setItemMeta(sm);
-            } catch (Exception e) {
-                warnOnce("Texture head tidak valid: " + e.getMessage());
-            }
+        return url != null && TEXTURE_HOST.matcher(url).matches();
+    }
+
+    /** Builds a head with the texture applied right away, or null when the texture is missing/invalid. */
+    public ItemStack headOrNull(String texture) {
+        if (!validTexture(texture)) return null;
+        String url = textureUrl(texture);
+        ItemStack it = new ItemStack(Material.PLAYER_HEAD);
+        if (!(it.getItemMeta() instanceof SkullMeta sm)) return null;
+        try {
+            // Deterministic UUID per texture: heads stack and never flicker/re-download.
+            PlayerProfile profile = Bukkit.createPlayerProfile(
+                    UUID.nameUUIDFromBytes(url.getBytes(StandardCharsets.UTF_8)), "OctaGens");
+            PlayerTextures tex = profile.getTextures();
+            tex.setSkin(java.net.URI.create(url).toURL());
+            profile.setTextures(tex);
+            sm.setOwnerProfile(profile);
+            it.setItemMeta(sm);
+            return it;
+        } catch (Exception e) {
+            warnOnce("Texture head tidak valid: " + e.getMessage());
+            return null;
         }
-        return it;
+    }
+
+    /** Head for a HEAD:<texture> reference. An invalid texture gives a plain head (a warning is logged once). */
+    public ItemStack head(String texture) {
+        ItemStack it = headOrNull(texture);
+        if (it != null) return it;
+        warnOnce("HEAD texture tidak valid / kosong: '" + (texture == null ? "" : texture.length() > 24 ? texture.substring(0, 24) + "..." : texture) + "'");
+        return new ItemStack(Material.PLAYER_HEAD);
+    }
+
+    /** Block used for a Magicule Power Collector whose head texture is missing/invalid (never a broken skull). */
+    public Material energyFallbackMaterial() {
+        Material m = Material.matchMaterial(plugin.settings().energyFallbackBlock);
+        return m != null && m.isBlock() ? m : Material.AMETHYST_BLOCK;
     }
 
     // ------------------------------------------------------------------ OctaGens items
@@ -281,7 +305,11 @@ public final class ItemService {
     }
 
     public ItemStack energyItem(EnergyType e, int amount, List<String> extraLore, Map<String, String> extra) {
-        ItemStack st = head(e.headTexture);
+        ItemStack st = headOrNull(e.headTexture);
+        if (st == null) {
+            warnOnce("Magicule Power Collector '" + e.id + "' belum punya head texture valid -> memakai " + energyFallbackMaterial() + ". Pakai /octagens settexture " + e.id);
+            st = new ItemStack(energyFallbackMaterial());
+        }
         ItemMeta meta = st.getItemMeta();
         Map<String, String> repl = new HashMap<>();
         repl.put("name", e.displayName);
@@ -304,7 +332,7 @@ public final class ItemService {
         return dropItem(t, amount, null);
     }
 
-    /** Like {@link #dropItem(GeneratorType, int)} but also tags the generator owner (used by the AxSellwands hook). */
+    /** Like {@link #dropItem(GeneratorType, int)} but also tags the generator owner. */
     public ItemStack dropItem(GeneratorType t, int amount, UUID owner) {
         ItemStack proto = dropCache.get(t.id);
         if (proto == null) {
@@ -331,6 +359,68 @@ public final class ItemService {
     /** UUID string of the generator owner stored on a drop item, or null. */
     public String dropOwner(ItemStack s) {
         return readTag(s, keys().dropOwner);
+    }
+
+    // ------------------------------------------------------------------ sellwand
+
+    public Map<String, String> wandRepl(SellwandType t, int uses, double multiplier) {
+        Map<String, String> r = new HashMap<>();
+        r.put("id", t.id);
+        r.put("symbol", t.symbol);
+        r.put("uses", uses < 0 ? "\u221e" : String.valueOf(uses));
+        r.put("multiplier", Fmt.number(multiplier));
+        r.put("cooldown", Fmt.number(t.cooldownMs / 1000.0));
+        return r;
+    }
+
+    /**
+     * Builds a sellwand. {@code uses} below 1 means unlimited; {@code multiplier} has no upper limit and may be
+     * a decimal. The multiplier and the remaining uses are stored in the item's PDC.
+     */
+    public ItemStack wandItem(SellwandType t, int uses, double multiplier, int amount) {
+        ItemSpec spec = t.spec.copy();
+        spec.amount = 1;
+        if (spec.name == null) spec.name = "{symbol} <gold>Sellwand";
+        int u = uses < 1 ? -1 : uses;
+        ItemStack st = build(spec, wandRepl(t, u, multiplier), null);
+        if (st == null) return null;
+        ItemMeta meta = st.getItemMeta();
+        PersistentDataContainer pdc = meta.getPersistentDataContainer();
+        pdc.set(keys().wand, PersistentDataType.STRING, t.id);
+        pdc.set(keys().wandUses, PersistentDataType.INTEGER, u);
+        pdc.set(keys().wandMultiplier, PersistentDataType.DOUBLE, multiplier);
+        try {
+            meta.setMaxStackSize(1);
+        } catch (Throwable ignored) {
+            // older API
+        }
+        st.setItemMeta(meta);
+        st.setAmount(Math.max(1, amount));
+        return st;
+    }
+
+    public String wandId(ItemStack s) {
+        return readTag(s, keys().wand);
+    }
+
+    /** Remaining uses stored on the wand (-1 = unlimited, 0 when the tag is missing). */
+    public int wandUses(ItemStack s) {
+        if (s == null || !s.hasItemMeta()) return 0;
+        Integer v = s.getItemMeta().getPersistentDataContainer().get(keys().wandUses, PersistentDataType.INTEGER);
+        return v == null ? 0 : v;
+    }
+
+    /** Multiplier stored on the wand (1.0 when missing). */
+    public double wandMultiplier(ItemStack s) {
+        if (s == null || !s.hasItemMeta()) return 1.0;
+        Double v = s.getItemMeta().getPersistentDataContainer().get(keys().wandMultiplier, PersistentDataType.DOUBLE);
+        return v == null ? 1.0 : v;
+    }
+
+    /** Rewrites name/lore/PDC of an existing wand stack with a new remaining-uses value. */
+    public void refreshWand(ItemStack stack, SellwandType t, int uses, double multiplier) {
+        ItemStack fresh = wandItem(t, uses, multiplier, 1);
+        if (fresh != null) stack.setItemMeta(fresh.getItemMeta());
     }
 
     // ------------------------------------------------------------------ identification

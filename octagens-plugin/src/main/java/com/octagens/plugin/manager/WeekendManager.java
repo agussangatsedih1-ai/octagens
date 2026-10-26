@@ -55,6 +55,7 @@ public final class WeekendManager {
     private boolean active;
     private double manualMultiplier = 1.0;
     private long manualUntil;
+    private long manualTotalSeconds;
     private BossBar bar;
     private BukkitTask task;
 
@@ -191,24 +192,61 @@ public final class WeekendManager {
         return weekBase().plusMinutes(endMinuteOfWeek).withZoneSameInstant(displayZone).format(displayFmt) + " " + displayLabel;
     }
 
+    /** Booster as plain number text without the trailing "x": "3", "2.5" or a range "2-4". */
+    public String boosterText() {
+        double m = isManualActive() ? manualMultiplier : 1.0;
+        double lo;
+        double hi;
+        if (active) {
+            if (mode == Mode.RANDOM_PER_DROP && max > min) {
+                lo = min;
+                hi = max;
+            } else {
+                lo = hi = weekendValue();
+            }
+        } else {
+            lo = hi = 1.0;
+        }
+        lo *= m;
+        hi *= m;
+        return Math.abs(hi - lo) < 1e-9 ? Fmt.number(lo) : Fmt.number(lo) + "-" + Fmt.number(hi);
+    }
+
+    private long boostRemainingSeconds() {
+        if (active) return remainingSeconds();
+        if (isManualActive()) return Math.max(0, (manualUntil - System.currentTimeMillis()) / 1000);
+        return 0;
+    }
+
     private void renderDisplay() {
-        if (!isActive() || displayType.equals("NONE")) {
+        boolean boosting = active || isManualActive();
+        if (!boosting || displayType.equals("NONE")) {
             if (bar != null) bar.removeAll();
             return;
         }
-        String[] kv = placeholders();
+        long remaining = boostRemainingSeconds();
+        Map<String, String> r = new HashMap<>();
+        r.put("booster", boosterText());
+        r.put("duration", Fmt.duration(remaining));
+        r.put("multiplier", displayMultiplier());
+        r.put("remaining", Fmt.duration(remaining));
         if (displayType.equals("ACTIONBAR")) {
-            String msg = plugin.messages().get("weekend-actionbar", append(kv, "remaining", Fmt.duration(remainingSeconds())));
+            String msg = Text.color(Text.replace(plugin.settings().actionbarText, r));
             for (Player p : Bukkit.getOnlinePlayers()) {
                 p.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(msg));
             }
             return;
         }
         if (bar == null) bar = Bukkit.createBossBar("", barColor, barStyle);
-        bar.setTitle(plugin.messages().get("weekend-bossbar", append(kv, "remaining", Fmt.duration(remainingSeconds()))));
-        long total = startSec <= endSec ? endSec + 1 - startSec : WEEK_SECONDS - startSec + endSec + 1;
-        double prog = total <= 0 ? 1 : Math.max(0, Math.min(1, remainingSeconds() / (double) total));
-        bar.setProgress(prog);
+        bar.setTitle(Text.color(Text.replace(plugin.settings().bossbarTitle, r)));
+        double prog;
+        if (active) {
+            long total = startSec <= endSec ? endSec + 1 - startSec : WEEK_SECONDS - startSec + endSec + 1;
+            prog = total <= 0 ? 1 : remaining / (double) total;
+        } else {
+            prog = manualTotalSeconds <= 0 ? 1 : remaining / (double) manualTotalSeconds;
+        }
+        bar.setProgress(Math.max(0, Math.min(1, prog)));
         for (Player p : Bukkit.getOnlinePlayers()) {
             if (!bar.getPlayers().contains(p)) bar.addPlayer(p);
         }
@@ -223,7 +261,7 @@ public final class WeekendManager {
     }
 
     public void onJoin(Player p) {
-        if (bar != null && isActive()) bar.addPlayer(p);
+        if (bar != null && (isActive() || isManualActive())) bar.addPlayer(p);
     }
 
     public void onQuit(Player p) {
@@ -282,7 +320,8 @@ public final class WeekendManager {
 
     public void setManual(double multiplier, long seconds) {
         manualMultiplier = Math.max(1.0, multiplier);
-        manualUntil = System.currentTimeMillis() + (seconds > 0 ? seconds : manualDefaultSeconds) * 1000L;
+        manualTotalSeconds = seconds > 0 ? seconds : manualDefaultSeconds;
+        manualUntil = System.currentTimeMillis() + manualTotalSeconds * 1000L;
     }
 
     public void clearManual() {

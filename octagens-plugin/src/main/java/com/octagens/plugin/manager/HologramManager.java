@@ -203,7 +203,7 @@ public final class HologramManager {
             }
             if (!near) continue;
             double gain = Math.min(e.mcu * seconds, pool.max - pool.current);
-            String text = Text.color(Text.replace(s.holoEnergyText, Map.of("gain", Fmt.number(gain), "mcu", Fmt.number(e.mcu))));
+            String text = Text.color(Text.replace(plugin.messages().raw("holo-energy"), Map.of("gain", Fmt.number(gain), "mcu", Fmt.number(e.mcu))));
             Location loc = new Location(w, e.key.x() + 0.5, e.key.y() + s.holoEnergyHeight, e.key.z() + 0.5);
             TextDisplay td = spawn(loc, text);
             energyVisible.put(e, new EnergyHolo(td.getUniqueId(), clock + s.holoEnergyDuration));
@@ -234,7 +234,7 @@ public final class HologramManager {
     }
 
     private String format(PlacedGenerator g) {
-        if (g.holoDropMode) return Text.color(plugin.settings().holoDropText);
+        if (g.holoDropMode) return Text.color(plugin.messages().raw("holo-drop"));
         GeneratorType t = plugin.registry().generator(g.typeId);
         Map<String, String> r = new HashMap<>();
         EnergyPool pool = plugin.energy().pool(g.owner);
@@ -251,9 +251,9 @@ public final class HologramManager {
         r.put("regen", Fmt.number(plugin.energy().regenRate(g.owner)));
         r.put("required", Fmt.number(g.required));
         r.put("efficiency", Fmt.percent(eff));
-        r.put("status", plugin.settings().holoStatus.getOrDefault(g.status.name(), g.status.name()));
+        r.put("status", plugin.messages().raw("holo-status-" + g.status.name().toLowerCase()));
         List<String> lines = new ArrayList<>();
-        for (String l : plugin.settings().holoLines) lines.add(Text.color(Text.replace(l, r)));
+        for (String l : plugin.messages().rawList("holo-lines")) lines.add(Text.color(Text.replace(plugin.messages().resolveLang(l), r)));
         return String.join("\n", lines);
     }
 }

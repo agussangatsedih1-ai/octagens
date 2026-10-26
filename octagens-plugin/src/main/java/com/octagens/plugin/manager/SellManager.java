@@ -6,7 +6,12 @@ import com.octagens.plugin.hook.Currency;
 import com.octagens.plugin.model.GeneratorType;
 import com.octagens.plugin.util.Fmt;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.World;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
+import com.octagens.plugin.model.PlacedGenerator;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -143,23 +148,27 @@ public final class SellManager {
     }
 
     /**
-     * Sells OctaGens drops stored in a container (used by the AxSellwands hook).
-     * @param extraMultiplier multiplier of the wand, applied on top of the player's permission multiplier
-     * @param ownerOnly when not null only drops produced by this owner's generators are sold
+     * Sellwand: sells the OctaGens drops lying around a generator (the items it produced).
+     * @param multiplier the wand multiplier (no upper limit, decimals allowed) applied on top of the
+     *                   player's permission multiplier
      * @return number of items sold (0 = nothing was sold)
      */
-    public int sellContainer(Player p, Inventory inv, double extraMultiplier, UUID ownerOnly) {
+    public int sellGeneratorDrops(Player p, PlacedGenerator g, double multiplier) {
+        World w = org.bukkit.Bukkit.getWorld(g.key.world());
+        if (w == null) return 0;
+        Location c = new Location(w, g.key.x() + 0.5, g.key.y() + 1.5, g.key.z() + 0.5);
+        List<Item> entities = new ArrayList<>();
+        for (Entity e : w.getNearbyEntities(c, 1.0, 1.5, 1.0, en -> en instanceof Item)) entities.add((Item) e);
+        ItemStack[] contents = new ItemStack[entities.size()];
+        for (int i = 0; i < contents.length; i++) contents[i] = entities.get(i).getItemStack();
         boolean[] unavailable = new boolean[1];
-        ItemStack[] contents = inv.getContents();
-        String owner = ownerOnly == null ? null : ownerOnly.toString();
-        Map<String, Group> groups = scan(contents, 0, contents.length, unavailable,
-                owner == null ? null : st -> owner.equals(plugin.items().dropOwner(st)));
+        Map<String, Group> groups = scan(contents, 0, contents.length, unavailable, null);
         if (groups.isEmpty()) {
             if (unavailable[0]) plugin.messages().send(p, "sell-currency-unavailable");
             return 0;
         }
-        double mult = multiplier(p) * Math.max(0, extraMultiplier);
-        return payout(p, groups, mult, slot -> inv.setItem(slot, null), "axsellwands", "sellwand-success", "sellwand-success");
+        double mult = multiplier(p) * Math.max(0, multiplier);
+        return payout(p, groups, mult, idx -> entities.get(idx).remove(), "sellwand", "sellwand-success", "sellwand-success");
     }
 
     private int payout(Player p, Map<String, Group> groups, double mult, IntConsumer clearSlot, String source, String keyPlain, String keyMult) {

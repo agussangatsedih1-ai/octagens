@@ -5,6 +5,7 @@ import com.octagens.plugin.model.EnergyRecipe;
 import com.octagens.plugin.model.EnergyType;
 import com.octagens.plugin.model.GeneratorType;
 import com.octagens.plugin.model.OreConfig;
+import com.octagens.plugin.model.SellwandType;
 import com.octagens.plugin.util.Yml;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -24,6 +25,7 @@ public final class ContentRegistry {
     private Map<String, EnergyType> energies = new LinkedHashMap<>();
     private Map<String, EnergyRecipe> recipes = new LinkedHashMap<>();
     private OreConfig ore = new OreConfig();
+    private Map<String, SellwandType> wands = new LinkedHashMap<>();
 
     public ContentRegistry(OctaGensPlugin plugin) {
         this.plugin = plugin;
@@ -33,7 +35,7 @@ public final class ContentRegistry {
         String defCur = plugin.settings().defaultCurrency;
 
         Map<String, GeneratorType> g = new LinkedHashMap<>();
-        YamlConfiguration gy = Yml.load(plugin, "generators.yml", false);
+        YamlConfiguration gy = Yml.load(plugin, "generators/generators.yml", false);
         ConfigurationSection groot = gy.getConfigurationSection("generators");
         if (groot != null) {
             List<GeneratorType> list = new ArrayList<>();
@@ -56,7 +58,7 @@ public final class ContentRegistry {
         generators = g;
 
         Map<String, EnergyType> e = new LinkedHashMap<>();
-        YamlConfiguration ey = Yml.load(plugin, "energy.yml", false);
+        YamlConfiguration ey = Yml.load(plugin, "energy/energy.yml", false);
         ConfigurationSection eroot = ey.getConfigurationSection("energy");
         if (eroot != null) {
             for (String key : eroot.getKeys(false)) {
@@ -70,10 +72,26 @@ public final class ContentRegistry {
                 }
             }
         }
+        YamlConfiguration ty = Yml.load(plugin, "energy/textures.yml", false);
+        ConfigurationSection ts = ty.getConfigurationSection("textures");
+        if (ts != null) {
+            for (EnergyType et : e.values()) {
+                String v = ts.getString(et.id);
+                if (v != null && !v.isBlank()) et.headTexture = v.trim();
+            }
+        }
         energies = e;
+        List<String> noTexture = new ArrayList<>();
+        for (EnergyType et : e.values()) {
+            if (!com.octagens.plugin.item.ItemService.validTexture(et.headTexture)) noTexture.add(et.id);
+        }
+        if (!noTexture.isEmpty()) {
+            plugin.getLogger().warning("Magicule Power Collector tanpa head texture valid (memakai block cadangan): "
+                    + String.join(", ", noTexture) + ". Atur lewat /octagens settexture <id> atau energy/textures.yml.");
+        }
 
         Map<String, EnergyRecipe> r = new LinkedHashMap<>();
-        YamlConfiguration ry = Yml.load(plugin, "energyshop.yml", false);
+        YamlConfiguration ry = Yml.load(plugin, "energy/energyshop.yml", false);
         ConfigurationSection rroot = ry.getConfigurationSection("recipes");
         if (rroot != null) {
             for (String key : rroot.getKeys(false)) {
@@ -93,11 +111,28 @@ public final class ContentRegistry {
         }
         recipes = r;
 
-        YamlConfiguration oy = Yml.load(plugin, "oregen.yml", false);
+        YamlConfiguration oy = Yml.load(plugin, "oregen/oregen.yml", false);
         ore = OreConfig.parse(oy, plugin.getLogger());
 
+        Map<String, SellwandType> w = new LinkedHashMap<>();
+        YamlConfiguration wy = Yml.load(plugin, "sellwand/sellwand.yml", false);
+        ConfigurationSection wroot = wy.getConfigurationSection("wands");
+        if (wroot != null) {
+            for (String key : wroot.getKeys(false)) {
+                ConfigurationSection s = wroot.getConfigurationSection(key);
+                if (s == null) continue;
+                try {
+                    SellwandType t = SellwandType.parse(key, s);
+                    w.put(t.id, t);
+                } catch (Exception ex) {
+                    plugin.getLogger().warning("sellwand.yml: gagal memuat '" + key + "': " + ex.getMessage());
+                }
+            }
+        }
+        wands = w;
+
         plugin.getLogger().info("Dimuat: " + generators.size() + " generator, " + energies.size()
-                + " energy, " + recipes.size() + " resep energy shop.");
+                + " energy, " + recipes.size() + " resep energy shop, " + wands.size() + " sellwand.");
     }
 
     public GeneratorType generator(String id) {
@@ -126,5 +161,29 @@ public final class ContentRegistry {
 
     public OreConfig ore() {
         return ore;
+    }
+
+    public SellwandType wand(String id) {
+        return id == null ? null : wands.get(id.toLowerCase(Locale.ROOT));
+    }
+
+    public List<SellwandType> wands() {
+        return Collections.unmodifiableList(new ArrayList<>(wands.values()));
+    }
+
+    /** Saves a texture override for a collector into energy/textures.yml and applies it immediately. */
+    public boolean setTexture(String energyId, String base64) {
+        EnergyType t = energy(energyId);
+        if (t == null) return false;
+        t.headTexture = base64;
+        java.io.File file = new java.io.File(plugin.getDataFolder(), "energy/textures.yml");
+        YamlConfiguration y = Yml.load(plugin, "energy/textures.yml", false);
+        y.set("textures." + t.id, base64);
+        try {
+            y.save(file);
+        } catch (java.io.IOException ex) {
+            plugin.getLogger().warning("Gagal menyimpan energy/textures.yml: " + ex.getMessage());
+        }
+        return true;
     }
 }

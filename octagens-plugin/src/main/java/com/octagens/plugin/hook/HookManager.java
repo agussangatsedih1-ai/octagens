@@ -17,7 +17,6 @@ public final class HookManager {
     private MMOItemsHook mmo;
     private ItemsAdderHook ia;
     private ExcellentEconomyHook ee;
-    private AxSellwandsHook ax;
     private final Map<String, Currency> currencies = new HashMap<>();
     private final Set<String> warned = new HashSet<>();
 
@@ -45,11 +44,8 @@ public final class HookManager {
             ExcellentEconomyHook h = new ExcellentEconomyHook(plugin);
             if (h.init()) ee = h;
         }
-        if (plugin.settings().hookAx && Bukkit.getPluginManager().isPluginEnabled("AxSellwands")) {
-            ax = new AxSellwandsHook(plugin);
-        }
         plugin.getLogger().info("Hook: Vault=ok PlaceholderAPI=ok CoreProtect=ok MMOItems=" + (mmo != null)
-                + " ItemsAdder=" + (ia != null) + " ExcellentEconomy=" + (ee != null) + " AxSellwands=" + (ax != null));
+                + " ItemsAdder=" + (ia != null) + " ExcellentEconomy=" + (ee != null));
         return true;
     }
 
@@ -65,9 +61,6 @@ public final class HookManager {
         return ia;
     }
 
-    public AxSellwandsHook ax() {
-        return ax;
-    }
 
     /** @return currency or null when unavailable (logs a warning once per id) */
     public Currency currency(String id) {
@@ -87,6 +80,13 @@ public final class HookManager {
             return null;
         }
         return cur;
+    }
+
+    /** One-line status of all hooks, for /octagens version. */
+    public String summary() {
+        return "Vault \u2714, PlaceholderAPI \u2714, CoreProtect \u2714, MMOItems " + (mmo != null ? "\u2714" : "\u2718")
+                + ", ItemsAdder " + (ia != null ? "\u2714" : "\u2718")
+                + ", ExcellentEconomy " + (ee != null ? "\u2714" : "\u2718");
     }
 
     public String fonts(String text) {

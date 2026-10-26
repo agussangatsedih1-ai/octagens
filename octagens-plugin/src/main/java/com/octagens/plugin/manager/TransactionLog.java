@@ -38,6 +38,7 @@ public final class TransactionLog {
         if (!toFile) return;
         String out = Instant.now() + " [" + (sale ? "SELL" : "BUY") + "] " + player + " " + line + System.lineSeparator();
         File f = new File(plugin.getDataFolder(), plugin.settings().logFile);
+        if (f.getParentFile() != null) f.getParentFile().mkdirs();
         try {
             exec.execute(() -> {
                 try {

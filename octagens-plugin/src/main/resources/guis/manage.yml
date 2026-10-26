@@ -8,8 +8,9 @@
 #  function: UPGRADE_GENERATOR = ikon upgrade ke tier berikutnya (harga = harga shop tier berikutnya,
 #            atau selisihnya bila generators.upgrade.price-mode: DIFFERENCE di config.yml)
 #  Aksi internal: [pickup] mengambil generator kembali ke inventory, [upgrade-generator] upgrade tier
+#  Teks memakai token {lang:kunci} dari folder lang/.
 # ======================================================================
-title: "<dark_gray>Kelola generator"
+title: "<dark_gray>{lang:gui-manage-title}"
 rows: 3
 filler:
   item: "VANILLA:BLACK_STAINED_GLASS_PANE"
@@ -22,40 +23,40 @@ items:
     name: "{name}"
     glow: true
     lore:
-      - "<gray>Pemilik: <white>{owner}"
-      - "<gray>Lokasi: <white>{x}, {y}, {z} <dark_gray>({world})"
+      - "<gray>♛ {lang:gui-manage-owner}"
+      - "<gray>◈ {lang:gui-manage-location}"
       - ""
-      - "<gray>Drop: <white>{amount}x {drop_name} <gray>/ <white>{interval}s"
-      - "<gray>Weekend bonus: <white>{multiplier}"
-      - "<gray>Mcu pemilik: <aqua>{pool}<dark_gray>/<aqua>{pool_max} <gray>(+<aqua>{regen}<gray>/s)"
-      - "<gray>Konsumsi per drop: <aqua>{required} Mcu <gray>(siap: <white>{efficiency}<gray>)"
-      - "<gray>Harga jual drop: <green>{sell_price} <gray>per item"
-      - "<gray>Status: {status}"
+      - "<gray>✦ {lang:gui-manage-drop}"
+      - "<gray>✦ {lang:lore-gen-sell}"
+      - "<gray>❖ {lang:gui-manage-boost}"
+      - "<gray>⚡ {lang:gui-manage-mcu}"
+      - "<gray>⚡ {lang:gui-manage-cost}"
+      - "<gray>{lang:gui-entry-status}"
   upgrade:
     slot: 11
     function: UPGRADE_GENERATOR
     item: "VANILLA:NETHER_STAR"
-    name: "<gradient:#43e97b:#38f9d7><bold>Upgrade Generator</bold></gradient>"
+    name: "<gradient:#43e97b:#38f9d7><bold>{lang:gui-manage-up-name}</bold></gradient>"
     glow: true
     lore:
-      - "<gray>Tier sekarang: <white>#{tier}"
-      - "<gray>Naik ke: {next_name} <dark_gray>(#{next_tier})"
-      - "<gray>Drop: <white>{next_drop_name}"
-      - "<gray>Harga jual: <green>{next_sell_price} <gray>per item"
-      - "<gray>Konsumsi: <aqua>{next_energy} Mcu <gray>per drop"
+      - "<gray>{lang:gui-manage-up-tier}"
+      - "<gray>➤ {lang:gui-manage-up-next}"
+      - "<gray>{lang:gui-manage-up-drop}"
+      - "<gray>{lang:gui-manage-up-sell}"
+      - "<gray>{lang:gui-manage-up-cost}"
       - ""
-      - "<gray>Harga upgrade: <gold>{upgrade_price}"
-      - "<yellow>Klik untuk upgrade"
+      - "<gray>❖ {lang:gui-manage-up-price}"
+      - "<yellow>➤ {lang:gui-click-upgrade}"
     actions: ["[upgrade-generator]"]
   pickup:
     slot: 15
     item: "VANILLA:HOPPER"
-    name: "<yellow><bold>Ambil generator"
+    name: "<yellow><bold>{lang:gui-manage-pickup-name}"
     lore:
-      - "<gray>Kembalikan generator ke inventory."
+      - "<gray>{lang:gui-manage-pickup-lore}"
     actions: ["[pickup]"]
   close:
     slot: 22
     item: "VANILLA:BARRIER"
-    name: "<red>Tutup"
+    name: "<red>{lang:gui-close}"
     actions: ["[close]"]

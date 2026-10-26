@@ -1,10 +1,10 @@
 # ======================================================================
-#  OctaGens - guis/energyshop.yml  (Magicule Shop: beli energy + upgrade Mcu maksimum)
+#  OctaGens - guis/energyshop.yml  (Magicule Shop: beli collector + upgrade Mcu maksimum)
 #  Dibuka dengan /octagens magiculeshop.
 #  entry-lore placeholder: {price} {status} {ingredients} {mcu} {name}
-#  function: UPGRADE = tombol upgrade Mcu maksimum. Placeholder: {mcu} {mcu_max} {regen} {level}
+#  function: UPGRADE = tombol upgrade Mcu maksimum. Placeholder: {mcu} {mcu_max} {regen} {level} {step}
 #            {next_max} {price} {price10} {limit} {remaining}.  Aksi: [upgrade] [upgrade:10] [upgrade:max]
-#  ({ingredients} berisi beberapa baris: centang hijau = cukup, silang merah = kurang)
+#  Teks memakai token {lang:kunci} dari folder lang/.
 # ======================================================================
 title: "<gradient:#f093fb:#f5576c><bold>Magicule Shop</bold></gradient> <dark_gray>({page}/{pages})"
 rows: 4
@@ -14,50 +14,50 @@ filler:
 content-slots: ["10-16", "19-21"]
 entry-lore:
   - ""
-  - "<gray>Harga: <gold>{price}"
-  - "<gray>Bahan:"
+  - "<gray>❖ {lang:gui-entry-price}"
+  - "<gray>{lang:gui-entry-ingredients}"
   - "{ingredients}"
   - ""
-  - "<gray>Status: {status}"
-  - "<yellow>Klik untuk membeli"
+  - "<gray>{lang:gui-entry-status}"
+  - "<yellow>➤ {lang:gui-click-buy}"
 items:
   upgrade:
-    slot: 22
+    slot: 23
     function: UPGRADE
     item: "VANILLA:EXPERIENCE_BOTTLE"
-    name: "<gradient:#43e97b:#38f9d7><bold>Upgrade Mcu Maksimum</bold></gradient>"
+    name: "<gradient:#43e97b:#38f9d7><bold>{lang:gui-up-name}</bold></gradient>"
     glow: true
     lore:
-      - "<gray>Mcu sekarang: <aqua>{mcu}<dark_gray>/<aqua>{mcu_max}"
-      - "<gray>Regen: <aqua>{regen} Mcu/s"
-      - "<gray>Level upgrade: <white>{level} <dark_gray>(+1 level = +1000 Mcu maks)"
-      - "<gray>Batas tertinggi: <white>{limit} Mcu"
+      - "<gray>⚡ {lang:gui-up-mcu}"
+      - "<gray>✦ {lang:gui-up-regen}"
+      - "<gray>❖ {lang:gui-up-level}"
+      - "<gray>{lang:gui-up-limit}"
       - ""
-      - "<gray>Setelah upgrade: <aqua>{next_max} Mcu"
-      - "<gray>Harga 1 level: <gold>{price}"
-      - "<gray>Harga 10 level: <gold>{price10}"
+      - "<gray>{lang:gui-up-next}"
+      - "<gray>{lang:gui-up-price1}"
+      - "<gray>{lang:gui-up-price10}"
       - ""
-      - "<yellow>Klik kiri: +1 level"
-      - "<yellow>Klik kanan: +10 level"
+      - "<yellow>➤ {lang:gui-up-left}"
+      - "<yellow>➤ {lang:gui-up-right}"
     left-actions: ["[upgrade]"]
     right-actions: ["[upgrade:10]"]
   prev:
     slot: 30
     function: PREV
     item: "VANILLA:ARROW"
-    name: "<yellow>« Halaman sebelumnya"
+    name: "<yellow>{lang:gui-prev}"
   close:
     slot: 31
     item: "VANILLA:BARRIER"
-    name: "<red>Tutup"
+    name: "<red>{lang:gui-close}"
     actions: ["[close]"]
   back:
     slot: 27
     item: "VANILLA:OAK_DOOR"
-    name: "<gray>Menu utama"
+    name: "<gray>{lang:gui-main-menu}"
     actions: ["[open:main]"]
   next:
     slot: 32
     function: NEXT
     item: "VANILLA:ARROW"
-    name: "<yellow>Halaman berikutnya »"
+    name: "<yellow>{lang:gui-next}"

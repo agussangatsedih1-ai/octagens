@@ -107,6 +107,7 @@ public final class GuiManager {
         r.put("regen", Fmt.number(em.regenRate(p.getUniqueId())));
         r.put("level", String.valueOf(level));
         r.put("limit", Fmt.number(plugin.settings().mcuMaxLimit));
+        r.put("step", Fmt.number(plugin.settings().upgradeStep));
         r.put("remaining", String.valueOf(remaining));
         if (remaining <= 0) {
             r.put("next_max", Fmt.number(pool.max));
@@ -178,6 +179,20 @@ public final class GuiManager {
         repl.put("energy_max", limitText(plugin.slots().energyLimit(p)));
         OctaGui g = create(p, t, repl, Map.of());
         addStatic(g, t, p, repl);
+        for (GuiTemplate.Item it : t.items) {
+            if (!"SELF_HEAD".equals(it.function)) continue;
+            ItemStack head = plugin.items().buildSafe(it.spec, repl, p);
+            if (head.getItemMeta() instanceof org.bukkit.inventory.meta.SkullMeta sm) {
+                try {
+                    sm.setOwnerProfile(p.getPlayerProfile()); // the viewer's own skin: always valid
+                    head.setItemMeta(sm);
+                } catch (Exception ignored) {
+                    // keep the plain head
+                }
+            }
+            for (int slot : it.slots) g.set(slot, head, click -> runItem(g, p, it, click));
+        }
+        dynamicItems(g, t, p, "UPGRADE", null, repl);
         show(p, g);
     }
 
@@ -277,7 +292,7 @@ public final class GuiManager {
         repl.put("pool_max", repl.get("mcu_max"));
         repl.put("required", Fmt.number(gt.energyRequirement));
         repl.put("efficiency", Fmt.percent(eff));
-        repl.put("status", plugin.settings().holoStatus.getOrDefault(gen.status.name(), gen.status.name()));
+        repl.put("status", plugin.messages().get("holo-status-" + gen.status.name().toLowerCase()));
         repl.put("x", String.valueOf(gen.key.x()));
         repl.put("y", String.valueOf(gen.key.y()));
         repl.put("z", String.valueOf(gen.key.z()));

@@ -7,7 +7,7 @@
     <parent>
         <groupId>com.octagens</groupId>
         <artifactId>octagens-parent</artifactId>
-        <version>1.0.3-BETA</version>
+        <version>1.0.4-BETA</version>
     </parent>
 
     <artifactId>OctaGensAPI</artifactId>

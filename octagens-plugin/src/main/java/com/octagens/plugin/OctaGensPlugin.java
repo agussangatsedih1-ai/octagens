@@ -67,6 +67,7 @@ public final class OctaGensPlugin extends JavaPlugin {
     public void onEnable() {
         printBanner();
         if (!checkRequired()) return;
+        com.octagens.plugin.config.LegacyMigrator.run(this);
         saveDefaultConfig();
         settings = new Settings(this);
         settings.load();
@@ -175,7 +176,7 @@ public final class OctaGensPlugin extends JavaPlugin {
         pm.registerEvents(new ProtectionListener(this), this);
         pm.registerEvents(new OreGenListener(this), this);
         pm.registerEvents(new GuiListener(this), this);
-        if (hooks.ax() != null) hooks.ax().register();
+        pm.registerEvents(new com.octagens.plugin.listener.SellwandListener(this), this);
         pm.registerEvents(new PlayerListener(this), this);
         pm.registerEvents(new ChunkListener(this), this);
 
@@ -208,7 +209,6 @@ public final class OctaGensPlugin extends JavaPlugin {
             holograms.stop();
             holograms.removeAll();
         }
-        if (hooks != null && hooks.ax() != null) hooks.ax().unregister();
         if (guis != null) guis.closeAll();
         if (database != null) database.close();
         if (txLog != null) txLog.close();

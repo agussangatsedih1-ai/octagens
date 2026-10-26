@@ -191,6 +191,9 @@ public final class GeneratorListener implements Listener {
             return;
         }
 
+        // Right click with a sellwand is handled by SellwandListener.
+        if (plugin.items().wandId(p.getInventory().getItemInMainHand()) != null) return;
+
         // Right click (without sneaking): manage GUI / info. Sneak + right click keeps vanilla placing behaviour.
         if (p.isSneaking()) return;
         ItemStack hand = p.getInventory().getItemInMainHand();

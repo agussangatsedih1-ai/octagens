@@ -46,14 +46,10 @@ public final class Settings {
     public boolean holoEnabled, holoOnPlace, holoOnInteract, holoOnDrop;
     public double holoHeight, holoNearbyRadius;
     public int holoDuration, holoDropCooldown, holoDropDuration;
-    public String holoDropText = "Drop!";
     public boolean holoEnergyEnabled;
     public int holoEnergyInterval, holoEnergyDuration, holoEnergyMaxVisible;
     public double holoEnergyRadius, holoEnergyHeight;
-    public String holoEnergyText = "+{gain} Mcu";
     public float holoViewRange;
-    public List<String> holoLines = new ArrayList<>();
-    public final Map<String, String> holoStatus = new HashMap<>();
 
     public long sellCooldownMs;
     public boolean sellGui, shopConfirm;
@@ -67,11 +63,11 @@ public final class Settings {
     public String logFile;
 
     public boolean cpPlacement, cpRemoval, cpOregen, cpTransactions, cpSellwand;
-    public boolean hookMmo, hookIa, hookEe, hookAx, axOwnerOnly, axReadMultiplier;
-    public String axPriority;
-    public java.util.Set<String> axContainers = new HashSet<>();
-    public java.util.Set<String> axWandNamespaces = new HashSet<>();
-    public List<String> axWandText = new ArrayList<>();
+    public boolean hookMmo, hookIa, hookEe;
+    public String language = "id";
+    public String energyFallbackBlock = "AMETHYST_BLOCK";
+    public String bossbarTitle, actionbarText;
+    public boolean sellwandGeneratorOnlyHint;
     public boolean verifyBlocks;
 
     public Settings(OctaGensPlugin plugin) {
@@ -82,6 +78,10 @@ public final class Settings {
         plugin.reloadConfig();
         FileConfiguration c = plugin.getConfig();
         debug = c.getBoolean("general.debug", false);
+        language = c.getString("general.language", "id");
+        energyFallbackBlock = c.getString("energy.fallback-block", "AMETHYST_BLOCK");
+        bossbarTitle = c.getString("weekend-bonus.bossbar.title", "<gold>Generator Drop Boost: <yellow>{booster}x <gray>| <white>{duration}");
+        actionbarText = c.getString("weekend-bonus.actionbar-text", "<gold>Generator Drop Boost: <yellow>{booster}x <gray>| <white>{duration}");
         defaultCurrency = c.getString("general.default-currency", "vault");
 
         dbType = c.getString("database.type", "SQLITE").toUpperCase(Locale.ROOT);
@@ -137,7 +137,6 @@ public final class Settings {
         holoOnDrop = c.getBoolean("hologram.show-on.drop", true);
         holoNearbyRadius = Math.max(1, c.getDouble("hologram.drop-nearby-radius", 8));
         holoDropCooldown = Math.max(20, c.getInt("hologram.drop-cooldown-ticks", 100));
-        holoDropText = c.getString("hologram.drop-text", "<green><bold>Drop!");
         holoDropDuration = Math.max(5, c.getInt("hologram.drop-duration-ticks", 30));
         holoEnergyEnabled = c.getBoolean("hologram.energy.enabled", true);
         holoEnergyInterval = Math.max(20, c.getInt("hologram.energy.interval-ticks", 100));
@@ -145,12 +144,7 @@ public final class Settings {
         holoEnergyRadius = Math.max(1, c.getDouble("hologram.energy.nearby-radius", 12));
         holoEnergyHeight = c.getDouble("hologram.energy.height", 1.3);
         holoEnergyMaxVisible = Math.max(1, c.getInt("hologram.energy.max-visible", 60));
-        holoEnergyText = c.getString("hologram.energy.text", "<aqua>+{gain} Mcu");
         holoViewRange = (float) Math.max(0.1, c.getDouble("hologram.view-range", 0.6));
-        holoLines = new ArrayList<>(c.getStringList("hologram.lines"));
-        holoStatus.clear();
-        ConfigurationSection hs = c.getConfigurationSection("hologram.status");
-        if (hs != null) for (String k : hs.getKeys(false)) holoStatus.put(k.toUpperCase(Locale.ROOT), hs.getString(k, k));
 
         sellCooldownMs = Math.max(0, c.getLong("sell.cooldown-ms", 1000));
         sellGui = c.getBoolean("sell.sell-gui", false);
@@ -166,7 +160,7 @@ public final class Settings {
 
         logSell = c.getBoolean("logging.sell-log", true);
         logPurchase = c.getBoolean("logging.purchase-log", true);
-        logFile = c.getString("logging.file", "sell-log.txt");
+        logFile = c.getString("logging.file", "logs/sell-log.txt");
 
         cpPlacement = c.getBoolean("coreprotect.log-placement", false);
         cpRemoval = c.getBoolean("coreprotect.log-removal", true);
@@ -177,16 +171,6 @@ public final class Settings {
         hookMmo = c.getBoolean("hooks.mmoitems", true);
         hookIa = c.getBoolean("hooks.itemsadder", true);
         hookEe = c.getBoolean("hooks.excellenteconomy", true);
-        hookAx = c.getBoolean("hooks.axsellwands.enabled", true);
-        axPriority = c.getString("hooks.axsellwands.priority", "LOW");
-        axOwnerOnly = c.getBoolean("hooks.axsellwands.owner-only", true);
-        axReadMultiplier = c.getBoolean("hooks.axsellwands.read-multiplier", true);
-        axWandNamespaces = new HashSet<>();
-        for (String x : c.getStringList("hooks.axsellwands.wand-pdc-namespaces")) axWandNamespaces.add(x.toLowerCase(Locale.ROOT));
-        axWandText = new ArrayList<>();
-        for (String x : c.getStringList("hooks.axsellwands.wand-text-contains")) axWandText.add(x.toLowerCase(Locale.ROOT));
-        axContainers = new HashSet<>();
-        for (String x : c.getStringList("hooks.axsellwands.containers")) axContainers.add(x.toUpperCase(Locale.ROOT));
         verifyBlocks = c.getBoolean("performance.verify-blocks", true);
     }
 }

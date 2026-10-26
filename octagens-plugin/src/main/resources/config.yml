@@ -25,6 +25,9 @@ database:
 # ----------------------------------------------------------------------
 general:
   debug: false
+  # Bahasa pesan/GUI/hologram: id (Indonesia), en (English), zh (中文), ja (日本語), es (Español).
+  # File bahasa ada di folder lang/ dan bisa diedit.
+  language: "id"
   # Currency default bila generator/resep tidak menulis "currency".
   # Format: "vault" atau "excellenteconomy:<currency_id>"
   default-currency: "vault"
@@ -88,6 +91,8 @@ energy:
     cost-base: 5000000
     cost-increase: 0.25
   autosave-seconds: 300   # interval simpan pool ke database (async)
+  # Block cadangan bila head texture sebuah collector kosong/tidak valid (agar tidak tampil head rusak).
+  fallback-block: "AMETHYST_BLOCK"
   # Nama item Magicule Power Collector = display-name (energy.yml) + suffix ini. {mcu} = regen Mcu/s.
   item-name-suffix: " <dark_gray>[<aqua>{mcu} Mcu/s<dark_gray>]"
   max-distance: 64        # radius maksimum energy -> generator (block), world harus sama
@@ -100,8 +105,8 @@ energy:
 #  - Generator dipasang / diklik : hologram info (lines + status di bawah).
 #  - Generator DROP              : hanya teks "Drop!" (drop-text), tampil bila ada pemain di dekatnya.
 #  - Magicule Power Collector    : pulsa "+X Mcu" tiap beberapa detik selagi meregen (bagian energy).
-# Placeholder info: {name} {owner} {tier} {pool} {pool_max} {regen} {required} {efficiency} {status}
-#                   {drop_name} {interval} {amount} {sell_price}
+# Teks hologram (info, "Drop!", "+X Mcu", status) ada di file bahasa lang/<kode>.yml:
+#   holo-lines, holo-drop, holo-energy, holo-status-*  (simbol unik bisa diganti bebas di sana).
 # ----------------------------------------------------------------------
 hologram:
   enabled: true
@@ -111,7 +116,6 @@ hologram:
     place: true
     interact: true
     drop: true
-  drop-text: "<green><bold>Drop!"
   drop-duration-ticks: 30
   drop-nearby-radius: 8        # hologram Drop! hanya tampil jika ada pemain dalam radius ini
   drop-cooldown-ticks: 40      # jeda minimum antar kemunculan Drop! pada generator yang sama
@@ -123,20 +127,6 @@ hologram:
     nearby-radius: 12          # hanya tampil bila ada pemain sedekat ini (hemat entity)
     height: 1.3
     max-visible: 60            # batas hologram energy yang tampil bersamaan
-    text: "<aqua>+{gain} Mcu"  # {gain} = Mcu yang diregen selama interval, {mcu} = Mcu/s collector
-  lines:
-    - "{name}"
-    - "<gray>Pemilik: <white>{owner}"
-    - "<gray>Mcu: <aqua>{pool}<dark_gray>/<aqua>{pool_max} <dark_gray>| <gray>Butuh <aqua>{required}"
-    - "{status}"
-  status:
-    ACTIVE: "<green>Aktif"
-    NO_ENERGY: "<red>Energy kurang"
-    NO_CAPACITY: "<red>Max Mcu kurang <gray>(upgrade)"
-    NOT_CONNECTED: "<red>Tidak ada Magicule Power Collector di dekat"
-    FULL: "<yellow>Penuh - ambil dropnya"
-    OWNER_OFFLINE: "<gray>Owner offline"
-    UNKNOWN: "<dark_red>Tipe tidak dikenal"
 
 # ----------------------------------------------------------------------
 # WEEKEND BONUS (extra drop 2x - 4x)
@@ -165,9 +155,13 @@ weekend-bonus:
     start: true
     end: true
   display: BOSSBAR                   # BOSSBAR | ACTIONBAR | NONE
+  # Tampilan booster: BOSSBAR | ACTIONBAR | NONE. Muncul saat weekend bonus ATAU event /octagens setbonus aktif.
   bossbar:
     color: PURPLE
     style: SEGMENTED_10
+    # Placeholder: {booster} (mis. 3, 2.5 atau rentang 2-4), {duration} sisa waktu, {multiplier}
+    title: "<gold>Generator Drop Boost: <yellow>{booster}x <gray>| <white>{duration}"
+  actionbar-text: "<gold>Generator Drop Boost: <yellow>{booster}x <gray>| <white>{duration}"
   manual-default-duration: "1h"      # default durasi /octagens setbonus <x> (tanpa durasi)
 
 # ----------------------------------------------------------------------
@@ -181,7 +175,7 @@ sell:
 shop:
   confirm-gui: true        # true = klik item shop membuka GUI konfirmasi (guis/confirm.yml)
 
-# Sellwand = HOOK ke plugin AxSellwands (lihat hooks.axsellwands di bawah). OctaGens tidak punya sellwand sendiri.
+# Sellwand: tongkat jual drop di sekitar generator. Diatur di sellwand/sellwand.yml (bonus: /octagens sellwand give).
 
 # ----------------------------------------------------------------------
 # KEAMANAN
@@ -199,7 +193,7 @@ security:
 logging:
   sell-log: true               # tulis transaksi jual ke file
   purchase-log: true           # tulis transaksi beli ke file
-  file: "sell-log.txt"
+  file: "logs/sell-log.txt"    # log transaksi (folder logs/)
 
 # CoreProtect (WAJIB terpasang). CoreProtect sudah mencatat BlockPlaceEvent biasa sendiri,
 # jadi log-placement default false agar tidak ganda.
@@ -208,32 +202,12 @@ coreprotect:
   log-removal: true            # pickup/break/remove generator & energy
   log-oregen: true             # block hasil Stone/Basalt generator (user #octagens-oregen)
   log-transactions: true       # beli/jual/upgrade dicatat sebagai baris di riwayat player
-  log-sellwand: true           # penjualan lewat hook AxSellwands dicatat sebagai transaksi container
 
 # Hook opsional (false = diabaikan walau plugin-nya terpasang)
 hooks:
   mmoitems: true
   itemsadder: true
   excellenteconomy: true
-  # AxSellwands (Artillex-Studios): server HARUS memasang AxSellwands untuk memakai sellwand.
-  # Saat pemain klik kanan container dengan wand AxSellwands, OctaGens menjual drop generator di dalamnya
-  # dengan harga OctaGens (sell-price di generators.yml); sisa isi container diproses AxSellwands sendiri.
-  # Wand dikenali dari PDC (namespace "axsellwands"), jadi tidak butuh API AxSellwands.
-  axsellwands:
-    enabled: true
-    # Prioritas listener PlayerInteractEvent. LOW = berjalan SEBELUM AxSellwands (default prioritas NORMAL),
-    # sehingga drop OctaGens sudah terjual saat AxSellwands memeriksa container. Jika Anda mengubah
-    # interact-listener-priority di AxSellwands, sesuaikan nilai ini.
-    priority: LOW
-    # true = hanya drop yang dihasilkan generator milik pemegang wand yang dijual (aman dari pencurian isi
-    # chest orang lain). Drop lama tanpa tag pemilik tidak ikut dijual. false = jual semua drop OctaGens.
-    owner-only: true
-    read-multiplier: true     # coba baca multiplier dari item wand AxSellwands (best-effort), dikali harga
-    containers: [CHEST, TRAPPED_CHEST, BARREL, SHULKER_BOX, HOPPER, DROPPER, DISPENSER]
-    # Cara mengenali item wand AxSellwands (salah satu cukup):
-    wand-pdc-namespaces: [axsellwands]   # item punya key PDC dengan namespace ini
-    wand-text-contains: []               # atau nama/lore item memuat teks ini, mis. ["sellwand"]
-    # Tidak terdeteksi? Pegang wand, arahkan ke chest, jalankan /octagens axdebug untuk melihat key PDC item.
 
 performance:
   verify-blocks: true          # hapus registrasi bila block generator/energy hilang (WorldEdit dll)

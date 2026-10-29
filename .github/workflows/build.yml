@@ -1,0 +1,51 @@
+name: Build OctaGens
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write   # dibutuhkan hanya untuk membuat GitHub Release saat push tag v*
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      - name: Build (mvn clean package)
+        run: mvn -B -ntp clean package
+
+      - name: Upload jar plugin
+        uses: actions/upload-artifact@v4
+        with:
+          name: OctaGens
+          path: octagens-plugin/target/OctaGens-*.jar
+          if-no-files-found: error
+
+      - name: Upload jar API
+        uses: actions/upload-artifact@v4
+        with:
+          name: OctaGensAPI
+          path: octagens-api/target/OctaGensAPI-*.jar
+          if-no-files-found: error
+
+      - name: Buat GitHub Release (hanya saat tag v*)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            octagens-plugin/target/OctaGens-*.jar
+            octagens-api/target/OctaGensAPI-*.jar
+          generate_release_notes: true

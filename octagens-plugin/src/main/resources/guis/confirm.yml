@@ -1,0 +1,32 @@
+# ======================================================================
+#  OctaGens - guis/confirm.yml  (konfirmasi beli)
+#  function: PREVIEW = item yang akan dibeli (dibuat otomatis)
+#  Aksi internal: [buy] membeli item, [back] kembali ke shop (halaman yang sama)
+#  Nonaktifkan GUI ini dengan shop.confirm-gui: false di config.yml.
+# ======================================================================
+title: "<dark_gray>{lang:gui-confirm-title}"
+rows: 3
+filler:
+  item: "VANILLA:GRAY_STAINED_GLASS_PANE"
+  name: " "
+entry-lore:
+  - ""
+  - "<gray>❖ {lang:gui-entry-price}"
+  - "<gray>{lang:gui-entry-status}"
+items:
+  preview:
+    slot: 13
+    function: PREVIEW
+  confirm:
+    slot: 11
+    item: "VANILLA:LIME_STAINED_GLASS_PANE"
+    name: "<green><bold>{lang:gui-confirm-buy}"
+    lore:
+      - "<gray>{lang:gui-confirm-click}"
+    glow: true
+    actions: ["[buy]", "[sound] entity.experience_orb.pickup", "[back]"]
+  cancel:
+    slot: 15
+    item: "VANILLA:RED_STAINED_GLASS_PANE"
+    name: "<red><bold>{lang:gui-confirm-cancel}"
+    actions: ["[back]"]

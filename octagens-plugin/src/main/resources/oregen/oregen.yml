@@ -1,0 +1,65 @@
+# ======================================================================
+#  OctaGens - oregen.yml  (Stone Generator & Basalt Generator)
+#
+#  Stone Generator : lava bertemu air (Overworld, cobblestone generator vanilla).
+#  Basalt Generator: lava mengalir di atas SOUL_SOIL dengan BLUE_ICE di samping (Nether).
+#
+#  Tiap entry:
+#    block    material block hasil
+#    chance   bobot (%) - total dinormalisasi otomatis, tidak perlu berjumlah 100
+#    min-y / max-y   batas Y-level (opsional)
+#    worlds   daftar nama world (opsional; kosong = semua)
+#    biomes   daftar biome, mis. [plains, desert] (opsional; kosong = semua)
+#  Varian deepslate otomatis dipakai bila Y < deepslate.below-y.
+#  Hasil dicatat ke CoreProtect (user #octagens-oregen) bila coreprotect.log-oregen aktif.
+# ======================================================================
+effects: true
+
+deepslate:
+  enabled: true
+  below-y: 0
+
+# Bonus chance berdasarkan permission pemain TERDEKAT (radius player-radius).
+bonus:
+  enabled: true
+  player-radius: 8
+  entries:
+    - permission: "octagens.oregen.bonus.vip"
+      multiplier: 1.5
+      blocks: [COAL_ORE, COPPER_ORE, IRON_ORE, GOLD_ORE, REDSTONE_ORE, LAPIS_ORE]
+    - permission: "octagens.oregen.bonus.mvp"
+      multiplier: 2.0
+      blocks: [DIAMOND_ORE, EMERALD_ORE, ANCIENT_DEBRIS]
+
+stone-generator:
+  enabled: true
+  worlds: []                 # kosong = semua world
+  environments: [NORMAL]
+  entries:
+    - { block: COBBLESTONE,   chance: 40 }
+    - { block: STONE,         chance: 25 }
+    - { block: ANDESITE,      chance: 6 }
+    - { block: DIORITE,       chance: 6 }
+    - { block: GRANITE,       chance: 6 }
+    - { block: COAL_ORE,      chance: 6 }
+    - { block: COPPER_ORE,    chance: 4 }
+    - { block: IRON_ORE,      chance: 3 }
+    - { block: GOLD_ORE,      chance: 1.5 }
+    - { block: REDSTONE_ORE,  chance: 1.5 }
+    - { block: LAPIS_ORE,     chance: 1 }
+    - { block: DIAMOND_ORE,   chance: 0.5, max-y: 16 }
+    - { block: EMERALD_ORE,   chance: 0.25, max-y: 320 }
+
+basalt-generator:
+  enabled: true
+  worlds: []
+  environments: [NETHER]
+  entries:
+    - { block: BASALT,            chance: 40 }
+    - { block: BLACKSTONE,        chance: 25 }
+    - { block: NETHERRACK,        chance: 15 }
+    - { block: MAGMA_BLOCK,       chance: 6 }
+    - { block: SOUL_SAND,         chance: 6 }
+    - { block: NETHER_QUARTZ_ORE, chance: 4 }
+    - { block: NETHER_GOLD_ORE,   chance: 3 }
+    - { block: ANCIENT_DEBRIS,    chance: 1, max-y: 120 }

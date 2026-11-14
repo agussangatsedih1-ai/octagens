@@ -1,0 +1,50 @@
+# ======================================================================
+#  OctaGens - guis/tradecategory.yml  (isi sebuah kategori /octagens trade)
+#  content-slots : slot tempat trade ditampilkan.   function: PREV / NEXT = tombol halaman.
+#  entry-lore    : baris tambahan di bawah lore item hadiah.
+#                  Placeholder: {ingredients} {requirements} {status} {amount} {name} {category} {used} {limit}
+#  Title placeholder: {category} {page} {pages}.  Klik item = tukar (atomik: bahan & uang diambil hanya jika semua lengkap).
+#  Teks memakai token {lang:kunci} dari folder lang/.
+# ======================================================================
+title: "{category} <dark_gray>({page}/{pages})"
+rows: 6
+filler:
+  item: "VANILLA:BLACK_STAINED_GLASS_PANE"
+  name: " "
+content-slots: ["10-16", "19-25", "28-34", "37-43"]
+entry-lore:
+  - ""
+  - "<gray>❖ {lang:gui-trade-reward}"
+  - "<gray>{lang:gui-entry-ingredients}"
+  - "{ingredients}"
+  - "<gray>{lang:gui-trade-requirements}"
+  - "{requirements}"
+  - "<gray>{lang:gui-trade-limit}"
+  - ""
+  - "<gray>{lang:gui-entry-status}"
+  - "<yellow>➤ {lang:gui-trade-click}"
+items:
+  border:
+    slots: ["0-8", "45-53"]
+    item: "VANILLA:PURPLE_STAINED_GLASS_PANE"
+    name: " "
+  back:
+    slot: 45
+    item: "VANILLA:OAK_DOOR"
+    name: "<gray>{lang:gui-trade-categories}"
+    actions: ["[open:trade]"]
+  prev:
+    slot: 48
+    function: PREV
+    item: "VANILLA:ARROW"
+    name: "<yellow>{lang:gui-prev}"
+  close:
+    slot: 49
+    item: "VANILLA:BARRIER"
+    name: "<red>{lang:gui-close}"
+    actions: ["[close]"]
+  next:
+    slot: 50
+    function: NEXT
+    item: "VANILLA:ARROW"
+    name: "<yellow>{lang:gui-next}"

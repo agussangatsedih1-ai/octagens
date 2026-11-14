@@ -1,0 +1,117 @@
+# ======================================================================
+#  OctaGens - sellwand/sellwand.yml
+#  Sellwand = tongkat untuk MENJUAL drop OctaGens yang tersimpan di dalam CHEST (atau container lain).
+#  Cara pakai: pegang sellwand lalu KLIK KANAN chest yang berisi drop hasil generator.
+#  Drop yang tergeletak di atas generator TIDAK dijual (ambil dulu / pakai hopper ke chest).
+#  Uang masuk ke pemegang sellwand. Plugin proteksi (WorldGuard, claim, dll) dihormati.
+#
+#  Berikan dengan:  /octagens sellwand give <player> <wand_id> [jumlah] [uses] [multiplier]
+#    - uses       : jumlah pemakaian; 0 atau -1 = tak terbatas
+#    - multiplier : pengali harga jual, TANPA batas atas dan boleh desimal (mis. 1.5, 2.25, 100000)
+#  Permission pakai: octagens.sellwand.use (default: semua pemain)
+#
+#  settings:
+#    containers      daftar tipe container yang boleh dijual ("SHULKER_BOX" cocok dengan semua warna)
+#    success-sound / broken-sound   ID suara Minecraft (kosongkan untuk mematikan)
+#
+#  Field wand:
+#    item                ref item: VANILLA:X | MMOITEMS:TYPE:ID | ITEMSADDER:ns:id | HEAD:<base64>
+#    symbol              simbol kustom, dipakai lewat placeholder {symbol} di name/lore (Unicode apa pun)
+#    name, lore          hex color (&#RRGGBB / <#RRGGBB>), gradient, MiniMessage didukung
+#                        built-ins: {symbol} {id} {uses} {multiplier} {cooldown} {player} {server_name}
+#                        stats: {mcu} {mcu_max} {mcu_level} {mcu_regen} {generator_count} {mpc_count}
+#                        SuperiorSkyblock2: {island_name} {island_owner} {island_members} {island_role}
+#    placeholders        placeholder tambahan bebas per wand; key ditulis sebagai {key} di name/lore.
+#    custom-model-data   angka model resource pack (nama + model texture kustom)
+#    item-model          model component 1.21.2+ (mis. "mypack:sellwand_gold")
+#    glow                efek berkilau
+#    uses / multiplier / cooldown-ms   nilai default (multiplier boleh desimal, tanpa batas)
+# ======================================================================
+settings:
+  success-sound: "entity.experience_orb.pickup"
+  broken-sound: "entity.item.break"
+  containers:
+    - CHEST
+    - TRAPPED_CHEST
+    - BARREL
+    - SHULKER_BOX
+    - HOPPER
+    - DROPPER
+    - DISPENSER
+
+wands:
+  basic:
+    shop:
+      enabled: true
+      price: 10000
+      currency: "excellenteconomy:denari"
+    item: "VANILLA:BLAZE_ROD"
+    symbol: "✦"
+    name: "{symbol} <gradient:#f7971e:#ffd200><bold>Sellwand</bold></gradient> <dark_gray>[<white>Basic<dark_gray>]"
+    lore:
+      - "<gray>Server: <white>{server_name}"
+      - "<gray>Owner: <white>{player}"
+      - "<gray>Uses: <white>{uses}"
+      - "<gray>Sell multiplier: <gold>{multiplier}x"
+      - "<gray>Cooldown: <white>{cooldown}s"
+      - "<gray>Island: <white>{island_name}"
+      - ""
+      - "<yellow>Right-click a container to sell generator drops."
+    custom-model-data: 0
+    glow: true
+    uses: 50
+    multiplier: 1.0
+    cooldown-ms: 1500
+    placeholders:
+      server_name: "OctaNexus Realms"
+      tier_label: "Basic"
+  advanced:
+    shop:
+      enabled: true
+      price: 25000
+      currency: "excellenteconomy:denari"
+    item: "VANILLA:END_ROD"
+    symbol: "❖"
+    name: "{symbol} <gradient:#4facfe:#00f2fe><bold>Sellwand</bold></gradient> <dark_gray>[<aqua>Advanced<dark_gray>]"
+    lore:
+      - "<gray>Server: <white>{server_name}"
+      - "<gray>Owner: <white>{player}"
+      - "<gray>Uses: <white>{uses}"
+      - "<gray>Sell multiplier: <gold>{multiplier}x"
+      - "<gray>Cooldown: <white>{cooldown}s"
+      - "<gray>Island: <white>{island_name}"
+      - ""
+      - "<yellow>Right-click a container to sell generator drops."
+    custom-model-data: 0
+    glow: true
+    uses: 250
+    multiplier: 1.25
+    cooldown-ms: 1000
+    placeholders:
+      server_name: "OctaNexus Realms"
+      tier_label: "Advanced"
+  master:
+    shop:
+      enabled: true
+      price: 75000
+      currency: "excellenteconomy:denari"
+    item: "VANILLA:LIGHTNING_ROD"
+    symbol: "♛"
+    name: "{symbol} <gradient:#f093fb:#f5576c><bold>Sellwand</bold></gradient> <dark_gray>[<light_purple>Master<dark_gray>]"
+    lore:
+      - "<gray>Server: <white>{server_name}"
+      - "<gray>Owner: <white>{player}"
+      - "<gray>Uses: <white>{uses}"
+      - "<gray>Sell multiplier: <gold>{multiplier}x"
+      - "<gray>Cooldown: <white>{cooldown}s"
+      - "<gray>Island: <white>{island_name}"
+      - ""
+      - "<yellow>Right-click a container to sell generator drops."
+    custom-model-data: 0
+    glow: true
+    uses: -1
+    multiplier: 2.5
+    cooldown-ms: 500
+    placeholders:
+      server_name: "OctaNexus Realms"
+      tier_label: "Master"

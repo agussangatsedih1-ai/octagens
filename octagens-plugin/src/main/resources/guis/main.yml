@@ -1,0 +1,100 @@
+# ======================================================================
+#  OctaGens - guis/main.yml  (menu utama /octagens, 6 baris)
+#  Format item: slot / slots (angka, "a-b", atau list), item (ref), name, lore,
+#  custom-model-data, item-model (1.21.2+), glow, hide-flags, amount, actions / left-actions / right-actions.
+#  Aksi: [close] [open:<gui>] [message] [sound] [console] [player]
+#        internal: [sell] [sell-hand] [upgrade] [upgrade:10] [upgrade:max]
+#  function:  SELF_HEAD = kepala pemain yang membuka menu (selalu punya skin valid)
+#             UPGRADE   = tombol upgrade Mcu maksimum (lore: {mcu} {mcu_max} {regen} {level} {step} {limit}
+#                         {next_max} {price} {price10})
+#  Teks memakai token {lang:kunci} dari folder lang/ (5 bahasa); boleh diganti teks biasa.
+#  Placeholder: {player} {generators} {generators_max} {energies} {energy_max} + PlaceholderAPI (%...%)
+#  Title mendukung ItemsAdder font image (mis. :namespace_gui:) bila ItemsAdder terpasang.
+# ======================================================================
+title: "<gradient:#a18cd1:#fbc2eb><bold>OctaGens</bold></gradient> <dark_gray>✦ <gray>{player}"
+rows: 6
+filler:
+  item: "VANILLA:BLACK_STAINED_GLASS_PANE"
+  name: " "
+items:
+  border:
+    slots: ["0-8", "45-53", 9, 17, 18, 26, 27, 35, 36, 44]
+    item: "VANILLA:PURPLE_STAINED_GLASS_PANE"
+    name: " "
+  accent:
+    slots: [0, 8, 45, 53]
+    item: "VANILLA:MAGENTA_STAINED_GLASS_PANE"
+    name: " "
+  stats:
+    slot: 4
+    function: SELF_HEAD
+    item: "VANILLA:PLAYER_HEAD"
+    name: "<gradient:#f7971e:#ffd200><bold>{lang:gui-stats-name}</bold></gradient>"
+    lore:
+      - ""
+      - "<gray>✦ {lang:gui-stat-generators}"
+      - "<gray>✦ {lang:gui-stat-collectors}"
+      - "<gray>⚡ {lang:gui-stat-mcu}"
+      - "<gray>❖ {lang:gui-stat-boost} <white>%octagens_weekend_active% <dark_gray>(%octagens_weekend_multiplier%)"
+  shop:
+    slot: 20
+    item: "VANILLA:LAPIS_BLOCK"
+    name: "<gradient:#4facfe:#00f2fe><bold>Generator Shop</bold></gradient>"
+    glow: true
+    lore:
+      - "<gray>{lang:gui-main-shop}"
+      - ""
+      - "<yellow>➤ {lang:gui-click-open}"
+    actions: ["[sound] ui.button.click", "[open:shop]"]
+  magiculeshop:
+    slot: 22
+    item: "VANILLA:AMETHYST_CLUSTER"
+    name: "<gradient:#f093fb:#f5576c><bold>Magicule Shop</bold></gradient>"
+    glow: true
+    lore:
+      - "<gray>{lang:gui-main-mshop}"
+      - ""
+      - "<yellow>➤ {lang:gui-click-open}"
+    actions: ["[sound] ui.button.click", "[open:magiculeshop]"]
+  sell:
+    slot: 24
+    item: "VANILLA:GOLD_INGOT"
+    name: "<gradient:#f7971e:#ffd200><bold>{lang:gui-main-sell-name}</bold></gradient>"
+    glow: true
+    lore:
+      - "<gray>{lang:gui-main-sell}"
+      - ""
+      - "<yellow>➤ {lang:gui-click-sell}"
+    actions: ["[sell]", "[close]"]
+  upgrade:
+    slot: 31
+    function: UPGRADE
+    item: "VANILLA:EXPERIENCE_BOTTLE"
+    name: "<gradient:#43e97b:#38f9d7><bold>{lang:gui-up-name}</bold></gradient>"
+    glow: true
+    lore:
+      - "<gray>⚡ {lang:gui-up-mcu}"
+      - "<gray>✦ {lang:gui-up-regen}"
+      - "<gray>❖ {lang:gui-up-limit}"
+      - ""
+      - "<gray>{lang:gui-up-next}"
+      - "<gray>{lang:gui-up-price1}"
+      - "<gray>{lang:gui-up-price10}"
+      - ""
+      - "<yellow>➤ {lang:gui-up-left}"
+      - "<yellow>➤ {lang:gui-up-right}"
+    left-actions: ["[upgrade]"]
+    right-actions: ["[upgrade:10]"]
+  howto:
+    slot: 40
+    item: "VANILLA:BOOK"
+    name: "<white><bold>{lang:gui-howto-name}"
+    lore:
+      - "<gray>{lang:gui-howto-1}"
+      - "<gray>{lang:gui-howto-2}"
+      - "<gray>{lang:gui-howto-3}"
+  close:
+    slot: 49
+    item: "VANILLA:BARRIER"
+    name: "<red>{lang:gui-close}"
+    actions: ["[close]"]

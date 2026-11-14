@@ -1,39 +1,30 @@
-# OctaGens Changelog
+# Changelog
 
-## [1.0.6-BETA] - 2026-11-14
+All notable changes to OctaGens are documented here.
 
-### Added
-- Added a dedicated `/og sellwand shop` GUI for purchasing configured Sellwand tiers.
-- Added per-Sellwand shop settings: enable/disable, price, and currency.
-- Added separate booster configuration files for Generator Drop, Sell Multiplier, and MCu Gain.
-- Added selectable booster multiplier presets and custom whole-number multipliers from 1 to 10.
-- Added selectable giveaway durations (1m, 5m, 10m, 30m, 1h, 8h, 12h, and 24h); duration selection is free.
-- Added a decorated booster selection flow with glass-pane fillers, themed icons, and detailed lore.
-- Added dedicated booster automatic-schedule and chat-reward configuration files.
-- Added prefixed, organized help entries for player commands, MPC shortcuts, daily missions, and Sellwand shop.
+## [1.0.6] - 2026-11-14
+
+### Improved
+- Moved all Daily Missions GUI layout and visual settings into `guis/dailymissions.yml`.
+- Moved all Sellwand Shop GUI layout, decoration, product lore, close button, and six-row sizing into `guis/sellwandshop.yml`.
+- Moved all Giveaway Booster GUI layout, stage titles, item names, lore, button slots, frames, and decorations into `guis/booster.yml`.
+- Made the Daily Missions reminder and reset notifications use a clickable `[Missions]` component that opens `/dailymissions`.
+- Reworked Daily Missions presentation with configurable progress, completion, claim, and reward sections.
+- Converted reward IDs such as `VANILLA:IRON_INGOT:8` into readable item descriptions such as `8x Iron Ingots`; MMOItems rewards use their configured display name when available.
+- Removed the repeated plugin prefix from `/og help` and `/og help-admin`, while retaining prefixes for normal command feedback.
+- Reload now closes every OctaGens-owned menu before reloading its configuration, so players do not keep stale inventories open.
+- Reload now reloads Sellwand Shop GUI configuration alongside the other GUI files.
 
 ### Fixed
-- Fixed Giveaway GUI lore rendering: MiniMessage tags are now colorized before being written to item metadata instead of appearing as raw text.
-- Fixed the flat Giveaway menu presentation with a five-row layout, a dark amethyst frame, gold highlights, themed booster cards, glint accents, and clear back/close controls.
-- Fixed the multiplier selection screen so all configured presets (up to eight) are visible instead of silently hiding options after the fourth entry.
-- Fixed the missing `Fmt` utility import in `BoosterManager`, which caused compilation errors at the booster formatting call sites.
-
-### Changed
-- Updated project version from `1.0.6-SNAPSHOT` to `1.0.6-BETA`.
-- Organized bundled configuration resources so only `config.yml` and `plugin.yml` remain at the resources root; feature settings are grouped into folders.
-- Giveaway prices now use the configured Denari price per 1.0x multiplier: Generator Drop 10,000, Sell Multi 12,000, and MCu Gain 15,000 by default.
-- Booster duration no longer changes the price.
-- Custom multiplier input accepts integers only, between 1 and 10.
-- Weekend Generator Drop multiplier now rolls a decimal value in 0.1x steps between the configured minimum and maximum on each drop.
-- Added migration of legacy root `boosters.yml` and `daily-missions.yml` settings into their new folders.
-- Standardized prefix display for multiline command messages.
+- Daily Mission reward lore no longer prints raw reward definition strings.
+- Daily mission notification link text is rendered as an interactive chat component, not a plain `/dailymissions` instruction.
+- GUI styling tags are passed through the plugin's MiniMessage-to-legacy formatting path before being placed in item metadata.
 
 ### Configuration
-- `boosters/automatic.yml` controls automatic booster schedules.
-- `boosters/gen-drop.yml`, `boosters/sell-multi.yml`, and `boosters/mcu-gain.yml` control each giveaway shop.
-- `boosters/chat-rewards.yml` controls chat phrases, rewards, and giveaway notifications.
-- `missions/daily-missions.yml` contains Daily Mission settings.
-- `sellwand/sellwand.yml` contains Sellwand definitions and each tier's shop price/currency.
+- New GUI files: `guis/dailymissions.yml`, `guis/sellwandshop.yml`, and `guis/booster.yml`.
+- Existing mission definitions remain in `missions/daily-missions.yml`; player progress remains stored separately.
+- Existing Sellwand prices and availability remain in `sellwand/sellwand.yml`.
 
-### Notes
-- This is a BETA source package. A full Maven compile and live-server test are still required before production use.
+### Verification status
+- Source-level configuration and structural validation performed.
+- A full Maven build and in-server interaction test are still required before declaring the release production-ready.

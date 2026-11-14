@@ -1,6 +1,6 @@
-# OctaGens 1.0.6-BETA
+# OctaGens 1.0.6
 
-## 1.0.6-BETA additions
+## 1.0.6 additions
 
 - Per-player snapshot files are written to `player-data/<uuid>.yml`; the existing SQL database remains authoritative for Magicule pools and placed-block records.
 - Administrative commands: `/octagens reset energy <player>` and `/octagens set energylevel <player> <level>` (OP by default).
@@ -12,11 +12,12 @@
 
 ### New configuration files
 
-- `daily-missions.yml`: mission goals, rewards, timezone and reminder interval.
-- `boosters.yml`: automatic boost windows, giveaway prices/currencies/durations/multipliers and chat rewards.
+- `missions/daily-missions.yml`: mission goals, reward definitions, reset timezone and reminder interval.
+- `boosters/`: automatic schedule, three separate booster offer files, chat rewards and active giveaway state.
+- `guis/`: every editable menu layout, including `booster.yml`, `dailymissions.yml` and `sellwandshop.yml`.
 - Player snapshots: `player-data/`; daily progress: `daily-missions/`; active giveaway state: `boosters/state.yml`.
 
-## Existing plugin documentation (1.0.6-BETA baseline retained)
+## Existing plugin documentation (1.0.6 baseline retained)
 
 Fantasy-themed **drop generator** plugin for **Paper / Spigot 1.21+** (Java 21+).
 Inspired by the idea of AxGens, but every line of code, mechanic and API is written from scratch.
@@ -40,7 +41,7 @@ Inspired by the idea of AxGens, but every line of code, mechanic and API is writ
 
 ## Installation
 1. Install **Vault** (+ an economy plugin), **PlaceholderAPI** and **CoreProtect** (required). Optional: MMOItems, MythicLib, ItemsAdder, ExcellentEconomy and SuperiorSkyblock2.
-2. Put `OctaGens-1.0.6-BETA.jar` into `plugins/` and start the server (HikariCP, sqlite-jdbc and mariadb-jdbc are downloaded from Maven Central through `libraries:` in `plugin.yml`, so the first start needs internet access).
+2. Put `OctaGens-1.0.6.jar` into `plugins/` and start the server (HikariCP, sqlite-jdbc and mariadb-jdbc are downloaded from Maven Central through `libraries:` in `plugin.yml`, so the first start needs internet access).
 3. Set the head textures of the Magicule Power Collectors (see [Head textures](#head-textures)).
 4. Edit the config files and run `/octagens reload`.
 
@@ -57,12 +58,12 @@ plugins/OctaGens/
 ├── oregen/             oregen.yml
 ├── sellwand/           sellwand.yml
 ├── trade/              trade.yml
-├── daily-missions.yml   daily mission targets, rewards and WIB reset
-├── boosters.yml        automatic and giveaway booster settings
+├── missions/           daily-missions.yml (goals, rewards and WIB reset)
+├── boosters/           automatic.yml  gen-drop.yml  sell-multi.yml  mcu-gain.yml  chat-rewards.yml  state.yml
 ├── player-data/        per-player data snapshots
 ├── daily-missions/     per-player daily progress
-├── boosters/           active giveaway state
-├── guis/               main.yml  shop.yml  energyshop.yml  confirm.yml  manage.yml  sell.yml  trade.yml  tradecategory.yml
+├── guis/               main.yml  shop.yml  energyshop.yml  mpcupgrade.yml  confirm.yml  manage.yml  sell.yml
+│                       trade.yml  tradecategory.yml  booster.yml  dailymissions.yml  sellwandshop.yml
 ├── logs/               sell-log.txt
 └── legacy/             old files moved here automatically
 ```
@@ -82,6 +83,7 @@ Aliases: `/ogens`, `/og`.
 | `/octagens list` | Your generators / collectors / Mcu | `octagens.use` |
 | `/octagens ver` · `/octagens version` | Plugin version, server, language, hooks | `octagens.use` |
 | `/octagens give <player> <generator\|energy> <id> [amount]` | Give a generator / collector | `octagens.admin.give` |
+| `/octagens sellwand shop` | Open the six-row Sellwand Collection shop | `octagens.use` |
 | `/octagens sellwand give <player> <wand> [amount] [uses] [multiplier]` | Give a sellwand (decimal multiplier, no upper limit) | `octagens.admin.give` |
 | `/octagens settexture <energy_id> [base64\|url]` | Set a collector head texture (from the head in your hand) | `octagens.admin.give` |
 | `/octagens remove <player> <generators\|energy\|all> [id]` | Remove a player's blocks | `octagens.admin.remove` |
@@ -169,6 +171,9 @@ Per GUI:
 | `sell.yml` | `{items}` `{total}` `{multiplier}` `{lines}` |
 | `trade.yml` | `{count}` `{category}` (category icons) |
 | `tradecategory.yml` | `{category}` `{ingredients}` `{requirements}` `{status}` `{amount}` `{name}` `{used}` `{limit}` |
+| `booster.yml` | Category, multiplier, duration menu titles, slots, icons, names, lore and frame layout |
+| `dailymissions.yml` | Mission menu size, title, decorations, slots, state-specific names/lore and reward display format |
+| `sellwandshop.yml` | Six-row shop layout, Sellwand icon/name/lore templates, product slots and close/decorative items |
 
 GUI action strings (`[console]`, `[player]`, `[message]`, `[sound]`) accept `{player}`. Items also accept any PlaceholderAPI placeholder (see below).
 
@@ -180,9 +185,9 @@ Player stats: `{mcu}`, `{mcu_max}`, `{mcu_level}`, `{mcu_regen}`, `{generator_co
 ### Boss bar / action bar booster (`config.yml` → `weekend-bonus.bossbar.title`, `weekend-bonus.actionbar-text`)
 | Placeholder | Value |
 |---|---|
-| `{booster}` | Booster number without `x`: `3`, `2.5` or a range such as `2-4` |
+| `{booster}` | Booster number without `x`: `3`, `2.5` or a random range such as `2.0-4.0` |
 | `{duration}` · `{remaining}` | Remaining time (e.g. `1d 2h 3m`) |
-| `{multiplier}` | Booster with `x` (e.g. `2x-4x`, including a manual event) |
+| `{multiplier}` | Booster with `x` (e.g. `2.0x-4.0x`, including a manual event) |
 
 ### Weekend / language messages (`lang/*.yml`)
 `{multiplier}` `{start}` `{end}` (weekend start text, shown in the display time zone) · `{player}` `{id}` `{value}` `{amount}` `{name}` `{max}` `{limit}` `{levels}` `{price}` `{total}` `{owner}` `{seconds}` `{uses}` `{category}` `{ms}` `{duration}` `{generators}` `{energies}` `{pool}` `{pool_max}` `{mcu}` `{count}` `{version}` `{server}` `{lang}` `{db}` `{hooks}` — the message texts show which ones each message receives.
@@ -278,7 +283,7 @@ Collectors use player-head textures. They are empty by default; a collector with
 <dependency>
     <groupId>com.octagens</groupId>
     <artifactId>OctaGensAPI</artifactId>
-    <version>1.0.6-BETA</version>
+    <version>1.0.6</version>
     <scope>provided</scope>
 </dependency>
 ```
@@ -288,10 +293,10 @@ Events: `GeneratorPlace/Break/Pickup/Drop/Purchase/UpgradeEvent`, `EnergyPlace/B
 ```
 mvn clean package
 ```
-Output: `octagens-plugin/target/OctaGens-1.0.6-BETA.jar` (the API is shaded in) and `octagens-api/target/OctaGensAPI-1.0.6-BETA.jar`. See `BUILDING.md`. A GitHub Actions workflow is in `.github/workflows/build.yml`.
+Output: `octagens-plugin/target/OctaGens-1.0.6.jar` (the API is shaded in) and `octagens-api/target/OctaGensAPI-1.0.6.jar`. See `BUILDING.md`. A GitHub Actions workflow is in `.github/workflows/build.yml`.
 
 ## Changelog
-### 1.0.6-BETA
+### 1.0.6
 - **Player data:** per-player snapshots for Magicule current/max/level/regen, placed Generator/MPC locations, daily mission progress and giveaway claim state. Existing SQLite/MySQL data remains authoritative for pools and placed blocks.
 - **Admin commands:** `/octagens reset energy <player>` and `/octagens set energylevel <player> <level>`; `octagens.admin.energy` defaults to OP.
 - **Sellwand:** built-in player/server/Magicule and SuperiorSkyblock island placeholders plus custom placeholders per wand, without requiring language keys for default lore.
@@ -300,7 +305,7 @@ Output: `octagens-plugin/target/OctaGens-1.0.6-BETA.jar` (the API is shaded in) 
 - **Boosters:** separate Generator Drop, Sell and MCu Gain tracks; configurable weekend/Sunday/daily-random boosts; giveaway purchases stack additively with automatic boosts and reward players for configured chat phrases.
 - **SuperiorSkyblock2:** optional integration uses `SuperiorSkyblockAPI` only; island `BUILD` and `BREAK` privileges are checked for OctaGens blocks.
 
-### 1.0.6-BETA
+### 1.0.6
 - **New:** `/octagens trade` — trade generator drops and other items for rewards such as MMOItems; unlimited categories/trades, ingredients (`DROP:<id>`, MMOItems, ItemsAdder, vanilla...), money, permission, PlaceholderAPI conditions, per-player limits, extra commands; GUIs `trade.yml` / `tradecategory.yml`; permission `octagens.trade`.
 - **New:** MythicLib support — the player's `MAX_MANA_REGENERATION` stat boosts Mcu regeneration (`mythiclib` section in `config.yml`); PlaceholderAPI `%octagens_magicule_regen_me%`.
 - **Changed:** the sellwand is used by right-clicking a **chest** (allowed containers in `sellwand.yml`) and no longer sells items lying on a generator.
@@ -332,6 +337,6 @@ Output: `octagens-plugin/target/OctaGens-1.0.6-BETA.jar` (the API is shaded in) 
 - Initial release: 20 generators with the specified shop and sell prices, 10 energy types (Mcu/s), sell command, generator shop and energy shop (atomic purchases), weekend bonus (UTC → WIB display), stone/basalt ore generators, slot limits via permissions, YAML-driven GUIs, commands with tab completion, PlaceholderAPI expansion, CoreProtect logging and anti-exploit protections, public API (`octagens-api`) and SQLite/MySQL storage.
 
 
-## Release notes: 1.0.6-BETA
+## Release notes: 1.0.6
 
 See [CHANGELOG.md](CHANGELOG.md) for the complete update notes.

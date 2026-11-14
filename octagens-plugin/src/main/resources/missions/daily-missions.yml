@@ -1,0 +1,99 @@
+# Daily mission definitions. The reset clock is independent of the server timezone.
+timezone: "Asia/Jakarta" # WIB; 00:00 WIB = 17:00 UTC on the previous day
+notifications:
+  link-label: "<gold><bold>[Missions]</bold></gold>"
+  link-hover: "<yellow>Klik untuk membuka Daily Missions"
+  reset: "<gold>Daily missions sudah diperbarui dan siap dikerjakan. "
+  reminder: "<yellow>Masih ada misi yang menunggu diselesaikan. "
+  reminder-interval-seconds: 180
+missions:
+  sell-generator-drop:
+    name: "Sell Generator Drop"
+    event: SELL_GENERATOR_DROP
+    target: 64
+    icon: HOPPER
+    rewards:
+      - "VANILLA:DIAMOND:8"
+      - "COMMAND:eco give {player} 2500"
+  upgrade-mpc:
+    name: "Upgrade MPC"
+    event: UPGRADE_MPC
+    target: 1
+    icon: AMETHYST_SHARD
+    rewards:
+      - "VANILLA:EXPERIENCE_BOTTLE:16"
+  upgrade-generator:
+    name: "Upgrade Generator"
+    event: UPGRADE_GENERATOR
+    target: 1
+    icon: BLAST_FURNACE
+    rewards:
+      - "VANILLA:DIAMOND:5"
+  buy-generator:
+    name: "Buy Generator"
+    event: BUY_GENERATOR
+    target: 1
+    icon: DISPENSER
+    rewards:
+      - "VANILLA:EMERALD:12"
+  buy-mpc:
+    name: "Buy MPC"
+    event: BUY_MPC
+    target: 1
+    icon: AMETHYST_BLOCK
+    rewards:
+      - "VANILLA:AMETHYST_SHARD:24"
+  playtime-5m:
+    name: "Playtime 5 Minutes"
+    event: PLAYTIME
+    target: 300
+    icon: CLOCK
+    rewards: ["VANILLA:IRON_INGOT:8"]
+  playtime-10m:
+    name: "Playtime 10 Minutes"
+    event: PLAYTIME
+    target: 600
+    icon: CLOCK
+    rewards: ["VANILLA:IRON_INGOT:12"]
+  playtime-15m:
+    name: "Playtime 15 Minutes"
+    event: PLAYTIME
+    target: 900
+    icon: CLOCK
+    rewards: ["VANILLA:GOLD_INGOT:8"]
+  playtime-30m:
+    name: "Playtime 30 Minutes"
+    event: PLAYTIME
+    target: 1800
+    icon: CLOCK
+    rewards: ["VANILLA:GOLD_INGOT:16"]
+  playtime-1h:
+    name: "Playtime 1 Hour"
+    event: PLAYTIME
+    target: 3600
+    icon: CLOCK
+    rewards: ["VANILLA:DIAMOND:3"]
+  playtime-6h:
+    name: "Playtime 6 Hours"
+    event: PLAYTIME
+    target: 21600
+    icon: CLOCK
+    rewards: ["VANILLA:DIAMOND:12"]
+  playtime-10h:
+    name: "Playtime 10 Hours"
+    event: PLAYTIME
+    target: 36000
+    icon: CLOCK
+    rewards: ["VANILLA:DIAMOND_BLOCK:2"]
+  playtime-12h:
+    name: "Playtime 12 Hours"
+    event: PLAYTIME
+    target: 43200
+    icon: CLOCK
+    rewards: ["VANILLA:DIAMOND_BLOCK:3"]
+  playtime-20h:
+    name: "Playtime 20 Hours"
+    event: PLAYTIME
+    target: 72000
+    icon: CLOCK
+    rewards: ["VANILLA:DIAMOND_BLOCK:5"]

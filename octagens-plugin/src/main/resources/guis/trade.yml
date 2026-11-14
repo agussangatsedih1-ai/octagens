@@ -1,0 +1,42 @@
+# ======================================================================
+#  OctaGens - guis/trade.yml  (/octagens trade: daftar kategori)
+#  Kategori dibuat di trade/trade.yml (jumlah tak terbatas, dipaginasi otomatis).
+#  content-slots : slot tempat kategori ditampilkan.   function: PREV / NEXT = tombol halaman.
+#  entry-lore    : baris tambahan di bawah lore ikon kategori. Placeholder: {count} {category}
+#  Teks memakai token {lang:kunci} dari folder lang/.
+# ======================================================================
+title: "<gradient:#f7971e:#ffd200><bold>Trading</bold></gradient> <dark_gray>({page}/{pages})"
+rows: 6
+filler:
+  item: "VANILLA:BLACK_STAINED_GLASS_PANE"
+  name: " "
+content-slots: ["10-16", "19-25", "28-34"]
+entry-lore:
+  - ""
+  - "<gray>✦ {lang:gui-trade-cat-count}"
+  - "<yellow>➤ {lang:gui-click-open}"
+items:
+  border:
+    slots: ["0-8", "45-53"]
+    item: "VANILLA:PURPLE_STAINED_GLASS_PANE"
+    name: " "
+  back:
+    slot: 45
+    item: "VANILLA:OAK_DOOR"
+    name: "<gray>{lang:gui-main-menu}"
+    actions: ["[open:main]"]
+  prev:
+    slot: 48
+    function: PREV
+    item: "VANILLA:ARROW"
+    name: "<yellow>{lang:gui-prev}"
+  close:
+    slot: 49
+    item: "VANILLA:BARRIER"
+    name: "<red>{lang:gui-close}"
+    actions: ["[close]"]
+  next:
+    slot: 50
+    function: NEXT
+    item: "VANILLA:ARROW"
+    name: "<yellow>{lang:gui-next}"

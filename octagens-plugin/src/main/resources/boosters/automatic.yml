@@ -1,0 +1,12 @@
+# Automatic server-wide booster schedule (timezone is Indonesia WIB).
+timezone: "Asia/Jakarta"
+automatic:
+  sell:
+    enabled: true
+    day: SUNDAY
+    min: 1.5
+    max: 3.0
+  mcu-gain:
+    enabled: true
+    min: 1.2
+    max: 2.5

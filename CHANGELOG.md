@@ -13,6 +13,9 @@
 - Added prefixed, organized help entries for player commands, MPC shortcuts, daily missions, and Sellwand shop.
 
 ### Fixed
+- Fixed Giveaway GUI lore rendering: MiniMessage tags are now colorized before being written to item metadata instead of appearing as raw text.
+- Fixed the flat Giveaway menu presentation with a five-row layout, a dark amethyst frame, gold highlights, themed booster cards, glint accents, and clear back/close controls.
+- Fixed the multiplier selection screen so all configured presets (up to eight) are visible instead of silently hiding options after the fourth entry.
 - Fixed the missing `Fmt` utility import in `BoosterManager`, which caused compilation errors at the booster formatting call sites.
 
 ### Changed

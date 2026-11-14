@@ -1,7 +1,0 @@
-chat-phrases: ["GG", "Thanks", "SULTAN", "GOOD", "SUPERTHANKS"]
-chat-rewards:
-  - "VANILLA:DIAMOND:2"
-  - "COMMAND:eco give {player} 500"
-notifications:
-  giveaway: "<gold><bold>GIVEAWAY!</bold> <yellow>{player} mengaktifkan {booster} <white>{multiplier}x selama {duration}<yellow>! Ketik GG / Thanks / SULTAN / GOOD / SUPERTHANKS untuk hadiah."
-  claim: "<green>{player} berhasil mendapatkan hadiah giveaway!"

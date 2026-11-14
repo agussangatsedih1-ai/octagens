@@ -6,7 +6,7 @@
 
     <groupId>com.octagens</groupId>
     <artifactId>octagens-parent</artifactId>
-    <version>1.0.5-BETA</version>
+    <version>1.0.6-BETA</version>
     <packaging>pom</packaging>
     <name>OctaGens Parent</name>
 
@@ -32,6 +32,10 @@
         <repository>
             <id>placeholderapi</id>
             <url>https://repo.helpch.at/releases/</url>
+        </repository>
+        <repository>
+            <id>bg-repo</id>
+            <url>https://repo.bg-software.com/repository/api/</url>
         </repository>
         <repository>
             <id>playpro</id>
